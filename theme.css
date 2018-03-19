@@ -1,0 +1,18 @@
+.app-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+.iframe-container {
+    width: 70%;
+}
+
+.iframe {
+  height: 100%;
+  min-height: 1000px;
+  width: 100%;
+}
+
+.analytics-container {
+  width: 29%;
+}
