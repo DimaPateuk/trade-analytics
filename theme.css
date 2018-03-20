@@ -16,3 +16,7 @@
 .analytics-container {
   width: 29%;
 }
+
+table, th, td {
+    border: 1px solid black;
+}
