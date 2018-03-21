@@ -11,9 +11,11 @@ function printPrice () {
   const price = iframe.contentDocument.querySelector('.pin_text').innerHTML;
   prices.push(createTrainValue(parseFloat(price)));
 
-  if (prices.length > 60) {
+  if (prices.length > 15) {
     prices = prices.slice(1);
-
+  // }
+  //
+  // if (true) {
     if (inProgress) {
       return;
     }
@@ -27,6 +29,8 @@ function printPrice () {
     // } else {
     //   down();
     // }
+
+    console.log('beeeeet!!!', betType);
 
     const priceStart = prices[prices.length - 1];
     const time = new Date;
@@ -91,24 +95,52 @@ function createTrainValue (val, date) {
 
 
 function analize (arr) {
-
+  arr = arr.map(v => v * 100000);
   let countMore = 0;
   let countLess = 0;
 
   for (var i = 0; i < arr.length; i++) {
-	for (var j = i; j < arr.length; j++) {
-		if (arr[i] < arr[j]) countMore++;
-        if (arr[i] > arr[j]) countLess++;
-	}
+  	for (var j = i; j < arr.length; j++) {
+  		if (arr[i] < arr[j]) countMore++;
+      if (arr[i] > arr[j]) countLess++;
+  	}
   }
 
+  let averageJump = 0
 
-    const isUnstable = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
-    console.log(isUnstable, countMore, countLess);
-    if (isUnstable > 0.3) return null;
+  for (var i = 0; i < arr.length - 1; i++) {
+    averageJump += (arr[i] - arr[i + 1]) * -1;
+  }
 
-  return arr[0] > arr[arr.length - 1]
-    ? 'down'
-    : 'up';
+  averageJump /= arr.length;
+
+  const lastJumps = [
+    (arr[arr.length - 1] - arr[arr.length - 2]) * -1,
+    (arr[arr.length - 2] - arr[arr.length - 3]) * -1,
+  ];
+
+  const unstableCoefficient = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
+  const isUnstable = unstableCoefficient > 0.3;
+  // console.log(isUnstable, countMore, countLess);
+
+
+  // console.log(averageJump, lastJumps);
+
+  if (lastJumps.every(val => val < 0 && Math.abs(val) > averageJump * 2))  {
+    return 'down';
+  }
+
+  if (lastJumps.every(val => val > 0 && Math.abs(val) > averageJump * 2))  {
+    return 'up';
+  }
+
+  return null;
+
+
+  // if (isUnstable) return null;
+  //
+  // return arr[0] > arr[arr.length - 1]
+  //   ? 'down'
+  //   : 'up';
 
 }
