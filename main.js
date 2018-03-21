@@ -9,7 +9,7 @@ let prices = [];
 let inProgress = false;
 function printPrice () {
   const price = iframe.contentDocument.querySelector('.pin_text').innerHTML;
-  prices.push(parseFloat(price));
+  prices.push(createTrainValue(parseFloat(price)));
 
   if (prices.length > 60) {
     prices = prices.slice(1);
@@ -18,9 +18,16 @@ function printPrice () {
       return;
     }
 
-    const betType = prices[0] > prices[prices.length - 1]
-      ? 'down'
-      : 'up';
+    const betType = analize(prices);
+
+    if (!betType) return;
+
+    // if (betType === 'up') {
+    //   up();
+    // } else {
+    //   down();
+    // }
+
     const priceStart = prices[prices.length - 1];
     const time = new Date;
     inProgress = true;
@@ -29,6 +36,15 @@ function printPrice () {
         inProgress = false;
     }, 60000)
   }
+}
+
+
+function up () {
+  iframe.contentDocument.querySelector('[data-test="deal-button-up"]').click()
+}
+
+function down () {
+  iframe.contentDocument.querySelector('[data-test="deal-button-down"]').click()
 }
 
 function addRow (betType, time, priceStart, priceEnd) {
@@ -63,4 +79,36 @@ function addRow (betType, time, priceStart, priceEnd) {
   result.row.appendChild(result.result);
 
   table.appendChild(result.row);
+}
+
+function createTrainValue (val, date) {
+  return val;
+  // return {
+  //   input: [date || +new Date],
+  //   output: [val],
+  // }
+}
+
+
+function analize (arr) {
+
+  let countMore = 0;
+  let countLess = 0;
+
+  for (var i = 0; i < arr.length; i++) {
+	for (var j = i; j < arr.length; j++) {
+		if (arr[i] < arr[j]) countMore++;
+        if (arr[i] > arr[j]) countLess++;
+	}
+  }
+
+
+    const isUnstable = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
+    console.log(isUnstable, countMore, countLess);
+    if (isUnstable > 0.3) return null;
+
+  return arr[0] > arr[arr.length - 1]
+    ? 'down'
+    : 'up';
+
 }
