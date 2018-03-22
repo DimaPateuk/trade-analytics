@@ -1,7 +1,7 @@
 const iframe = document.querySelector('.iframe');
 
 iframe.addEventListener('load', () => {
-  setInterval(printPrice, 1000);
+  setInterval(printPrice, 500);
 });
 
 let prices = [];
@@ -11,34 +11,38 @@ function printPrice () {
   const price = iframe.contentDocument.querySelector('.pin_text').innerHTML;
   prices.push(createTrainValue(parseFloat(price)));
 
-  if (prices.length > 15) {
+  const betType = analize(prices);
+  if (prices.length > 60 * 2 * 5) {
     prices = prices.slice(1);
-  // }
-  //
-  // if (true) {
+
     if (inProgress) {
       return;
     }
 
-    const betType = analize(prices);
 
     if (!betType) return;
 
-    // if (betType === 'up') {
-    //   up();
-    // } else {
-    //   down();
-    // }
+    if (betType === 'up') {
+      up();
+    } else {
+      down();
+    }
 
     console.log('beeeeet!!!', betType);
 
-    const priceStart = prices[prices.length - 1];
+    const priceStartMy = prices[prices.length - 1];
     const time = new Date;
     inProgress = true;
     setTimeout(() => {
-        addRow(betType, time, priceStart, prices[prices.length - 1]);
+        const betInfo = iframe.contentDocument.querySelector('.user-deals-table__body').firstChild.children;
+        const time = betInfo[2].innerText
+        const priceStart = `${betInfo[3].innerText} - ${priceStartMy}`;
+        const priceEnd = `${betInfo[4].innerText} - ${prices[prices.length - 1]}`;
+        const result = betInfo[8].innerText;
+
+        addRow(betType, time, priceStart, priceEnd, result);
         inProgress = false;
-    }, 60000)
+    }, 61000 * 5)
   }
 }
 
@@ -51,7 +55,7 @@ function down () {
   iframe.contentDocument.querySelector('[data-test="deal-button-down"]').click()
 }
 
-function addRow (betType, time, priceStart, priceEnd) {
+function addRow (betType, time, priceStart, priceEnd, res) {
   const table = document.querySelector('.table');
 
   const result = {
@@ -67,14 +71,7 @@ function addRow (betType, time, priceStart, priceEnd) {
   result.time.innerHTML = time;
   result.priceStart.innerHTML = priceStart;
   result.priceEnd.innerHTML = priceEnd;
-
-  if (priceStart === priceEnd) {
-    result.result.innerHTML = 'none';
-  } else if (betType === 'up') {
-    result.result.innerHTML = priceStart < priceEnd ? 'win' : 'lose';
-  } else {
-    result.result.innerHTML = priceStart > priceEnd ? 'win' : 'lose';
-  }
+  result.result.innerHTML = res;
 
   result.row.appendChild(result.betType);
   result.row.appendChild(result.time);
@@ -114,6 +111,9 @@ function analize (arr) {
 
   averageJump /= arr.length;
 
+  averageJump = Math.abs(averageJump);
+
+
   const lastJumps = [
     (arr[arr.length - 1] - arr[arr.length - 2]) * -1,
     (arr[arr.length - 2] - arr[arr.length - 3]) * -1,
@@ -121,26 +121,26 @@ function analize (arr) {
 
   const unstableCoefficient = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
   const isUnstable = unstableCoefficient > 0.3;
-  // console.log(isUnstable, countMore, countLess);
+  console.log(unstableCoefficient, countMore, countLess, arr.length);
 
 
   // console.log(averageJump, lastJumps);
-
-  if (lastJumps.every(val => val < 0 && Math.abs(val) > averageJump * 2))  {
-    return 'down';
-  }
-
-  if (lastJumps.every(val => val > 0 && Math.abs(val) > averageJump * 2))  {
-    return 'up';
-  }
-
-  return null;
-
-
-  // if (isUnstable) return null;
   //
-  // return arr[0] > arr[arr.length - 1]
-  //   ? 'down'
-  //   : 'up';
+  // if (lastJumps.every(val => val < 0 && Math.abs(val) > averageJump * 2))  {
+  //   return 'down';
+  // }
+  //
+  // if (lastJumps.every(val => val > 0 && Math.abs(val) > averageJump * 2))  {
+  //   return 'up';
+  // }
+  //
+  // return null;
+
+
+  if (isUnstable) return null;
+
+  return arr[0] > arr[arr.length - 1]
+    ? 'down'
+    : 'up';
 
 }

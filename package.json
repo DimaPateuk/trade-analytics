@@ -1,0 +1,22 @@
+{
+  "name": "game",
+  "version": "1.0.0",
+  "description": "",
+  "main": "electron-main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DimaPateuk/trade-analytics.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/DimaPateuk/trade-analytics/issues"
+  },
+  "homepage": "https://github.com/DimaPateuk/trade-analytics#readme",
+  "devDependencies": {
+    "electron": "^1.8.4"
+  }
+}
