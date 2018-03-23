@@ -1,17 +1,30 @@
-const {app, BrowserWindow} = require('electron')
-  const path = require('path')
-  const url = require('url')
+const {app, BrowserWindow, ipcMain} = require('electron')
+const path = require('path')
+const url = require('url')
 
-  function createWindow () {
-    // Create the browser window.
-    win = new BrowserWindow({width: 800, height: 600})
+var fs = require('fs');
 
-    // and load the index.html of the app.
-    win.loadURL(url.format({
-      pathname: path.join(__dirname, 'index.html'),
-      protocol: 'file:',
-      slashes: true
-    }))
-  }
+function createWindow () {
+  // Create the browser window.
+  win = new BrowserWindow({width: 800, height: 600})
+  console.log(win);
+  // and load the index.html of the app.
+  win.loadURL(url.format({
+    pathname: path.join(__dirname, 'index.html'),
+    protocol: 'file:',
+    slashes: true
+  }))
+  ipcMain.on('asynchronous-reply', (event, arg) => {
+    console.log(arg);
+    fs.appendFileSync('log.txt', arg + '\r\n');
+  })
 
-  app.on('ready', createWindow)
+  ipcMain.on('clear-log', (event, arg) => {
+      fs.appendFileSync('log.txt', '1');
+      fs.unlinkSync('log.txt');
+
+  })
+
+}
+
+app.on('ready', createWindow)

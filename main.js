@@ -1,27 +1,42 @@
 const iframe = document.querySelector('.iframe');
+const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
   setInterval(printPrice, 500);
+  stopWorkAfter(60 * 60 * 1000);
+  ipcRenderer.send('clear-log');
+
 });
 
 let prices = [];
 
 let inProgress = false;
+let stopWork = false;
+let bet = 1;
+
+const betLoseMap = {
+  1: 2,
+  2: 6,
+  6: 1,
+}
+
 function printPrice () {
+  if (stopWork) {
+    return;
+  }
   const price = iframe.contentDocument.querySelector('.pin_text').innerHTML;
   prices.push(createTrainValue(parseFloat(price)));
 
   const betType = analize(prices);
-  if (prices.length > 60 * 2 * 5) {
+  if (prices.length > 60 * 2) {
     prices = prices.slice(1);
 
     if (inProgress) {
       return;
     }
 
-
     if (!betType) return;
-
+    setBet(bet);
     if (betType === 'up') {
       up();
     } else {
@@ -35,27 +50,69 @@ function printPrice () {
     inProgress = true;
     setTimeout(() => {
         const betInfo = iframe.contentDocument.querySelector('.user-deals-table__body').firstChild.children;
-        const time = betInfo[2].innerText
-        const priceStart = `${betInfo[3].innerText} - ${priceStartMy}`;
-        const priceEnd = `${betInfo[4].innerText} - ${prices[prices.length - 1]}`;
-        const result = betInfo[8].innerText;
+        const time = betInfo[2].innerText.trim()
+        const priceStart = `${betInfo[3].innerText.trim()}|${priceStartMy}`;
+        const priceEnd = `${betInfo[4].innerText.trim()}|${prices[prices.length - 1]}`;
+        const result = betInfo[8].innerText.trim();
 
-        addRow(betType, time, priceStart, priceEnd, result);
+        addRow(betType, time, priceStart, priceEnd, result, bet);
         inProgress = false;
-    }, 61000 * 5)
+        if (result.indexOf('Прогноз не оправдался') !== -1) {
+          bet = betLoseMap[bet];
+
+          console.log('Прогноз не оправдался, следующая ставка', bet);
+        }
+
+        if (result.indexOf('Прогноз оправдался') !== -1) {
+
+          console.log('Прогноз оправдался', bet, 'следующаяставка 1');
+          bet = 1;
+        }
+    }, 61000)
+  }
+}
+
+function stopWorkAfter(time) {
+  setTimeout(() => {
+    stopWork = true;
+  }, time)
+}
+
+let betMapPriceValue = {
+  1: 5,
+  2: 10,
+  6: 30,
+}
+
+function setBet (bet = 1) {
+  let current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
+
+  if (betMapPriceValue[bet] === current) {
+    return;
+  }
+
+  const count = Math.abs(betMapPriceValue[bet] - current) / 5;
+  if (betMapPriceValue[bet] > current) {
+    for (var i = 0; i < count; i++) {
+      iframe.contentDocument.querySelector('[data-test="deal-select-amount-up"]').click();
+    }
+  } else {
+    for (var i = 0; i < count; i++) {
+      iframe.contentDocument.querySelector('[data-test="deal-select-amount-down"]').click();
+    }
   }
 }
 
 
-function up () {
+function up (bet = 1) {
   iframe.contentDocument.querySelector('[data-test="deal-button-up"]').click()
 }
 
-function down () {
+function down (bet = 1) {
   iframe.contentDocument.querySelector('[data-test="deal-button-down"]').click()
 }
 
-function addRow (betType, time, priceStart, priceEnd, res) {
+function addRow (betType, time, priceStart, priceEnd, res, bet) {
   const table = document.querySelector('.table');
 
   const result = {
@@ -78,6 +135,9 @@ function addRow (betType, time, priceStart, priceEnd, res) {
   result.row.appendChild(result.priceStart);
   result.row.appendChild(result.priceEnd);
   result.row.appendChild(result.result);
+
+
+  ipcRenderer.send('asynchronous-reply', `${betType}|${time}|${priceStart}|${priceEnd}|${res}|${bet}`);
 
   table.appendChild(result.row);
 }
@@ -103,41 +163,11 @@ function analize (arr) {
   	}
   }
 
-  let averageJump = 0
-
-  for (var i = 0; i < arr.length - 1; i++) {
-    averageJump += (arr[i] - arr[i + 1]) * -1;
-  }
-
-  averageJump /= arr.length;
-
-  averageJump = Math.abs(averageJump);
-
-
-  const lastJumps = [
-    (arr[arr.length - 1] - arr[arr.length - 2]) * -1,
-    (arr[arr.length - 2] - arr[arr.length - 3]) * -1,
-  ];
-
   const unstableCoefficient = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
   const isUnstable = unstableCoefficient > 0.3;
-  console.log(unstableCoefficient, countMore, countLess, arr.length);
+  // console.log(unstableCoefficient, countMore, countLess, arr.length);
 
-
-  // console.log(averageJump, lastJumps);
-  //
-  // if (lastJumps.every(val => val < 0 && Math.abs(val) > averageJump * 2))  {
-  //   return 'down';
-  // }
-  //
-  // if (lastJumps.every(val => val > 0 && Math.abs(val) > averageJump * 2))  {
-  //   return 'up';
-  // }
-  //
-  // return null;
-
-
-  if (isUnstable) return null;
+  // if (isUnstable) return null;
 
   return arr[0] > arr[arr.length - 1]
     ? 'down'
