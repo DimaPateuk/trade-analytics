@@ -9,7 +9,7 @@ function processFile(inputFile, onLine, onClose) {
 
     rl.on('close', onClose);
 }
-processFile('log.txt', analize, printResult);
+processFile('log3.txt', analize, printResult);
 
 let win = 0;
 let lose = 0;
@@ -21,7 +21,6 @@ let info = {};
 
 function analize (line) {
   if (line.indexOf('Прогноз не оправдался') !== -1) {
-    console.log(-1);
     lose++;
     l++;
     if (l%3 === 0) {
@@ -33,7 +32,6 @@ function analize (line) {
   }
 
   if (line.indexOf('Прогноз оправдался') !== -1) {
-    console.log(1);
     win++;
 
     l && (info[l] = info[l] ? info[l] + 1 : 1);
@@ -44,12 +42,16 @@ function analize (line) {
 
 var prices = {
   0: 1.8,
-  1: 2 * 1.8,
-  2: 6 * 1.8,
-  3: -9,
-  4: -10 + 2 *1.8,
-  5: -12 + 6 *1.8,
-  6: -18,
+  1: 2 * 1.8 - 1,
+  2: 6 * 1.8 - 3,
+  3: 1.8 - 9,
+  4: 2 * 1.8 - 10,
+  5: 6 * 1.8 - 12,
+  6: 1.8 - 18,
+  7: 2 * 1.8 - 19,
+  8: 6 * 1.8 -21,
+  9: 1.8 - 27,
+  10: 2 * 1.8 - 28,
 }
 
 
@@ -59,6 +61,7 @@ function printResult () {
   const result = Object.keys(info)
     .map(v => parseInt(v))
     .reduce((res, val) => {
+      console.log(info[val], prices[val]);
       if (!prices[val]) return res;
       return res + info[val] * prices[val];
     }, 0);
