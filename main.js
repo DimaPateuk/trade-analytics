@@ -3,7 +3,7 @@ const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
   setInterval(printPrice, 500);
-  stopWorkAfter(60 * 60 * 1000);
+  // stopWorkAfter(60 * 60 * 1000);
   ipcRenderer.send('clear-log');
 
 });
@@ -152,6 +152,10 @@ function createTrainValue (val, date) {
 
 
 function analize (arr) {
+  if (parseInt(iframe.contentDocument.querySelector('.income__value').innerText) < 70) {
+    console.log(iframe.contentDocument.querySelector('.income__value'));
+    return null;
+  }
   arr = arr.map(v => v * 100000);
   let countMore = 0;
   let countLess = 0;
