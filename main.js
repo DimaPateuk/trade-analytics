@@ -3,7 +3,7 @@ const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
   setInterval(printPrice, 500);
-  stopWorkAfter(3 * 60 * 60 * 1000);
+  stopWorkAfter(2 * 60 * 60 * 1000);
   ipcRenderer.send('clear-log');
 
 });
