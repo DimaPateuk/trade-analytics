@@ -83,7 +83,7 @@ let betMapPriceValue = {
   6: 30,
 }
 
-window.f = async function setBet (bet = 1) {
+async function setBet (bet = 1) {
   let current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
 
   if (betMapPriceValue[bet] === current) {
