@@ -9,7 +9,7 @@ function processFile(inputFile, onLine, onClose) {
 
     rl.on('close', onClose);
 }
-processFile('log4.txt', analize, printResult);
+processFile('log.txt', analize, printResult);
 
 const rate = 1.7;
 let win = 0;
@@ -23,6 +23,7 @@ let info = {};
 let R = 0;
 function analize (line) {
   if (line.indexOf('Прогноз не оправдался') !== -1) {
+    console.log(`-${line[line.length - 1]}`);
     // console.log('-1');
     R += parseInt(line.split('|')[6]) * -1;
     // console.log(R);
@@ -37,6 +38,7 @@ function analize (line) {
   }
 
   if (line.indexOf('Прогноз оправдался') !== -1) {
+    console.log(`${line[line.length - 1]}`);
     // console.log('1');
     win++;
       R += parseInt(line.split('|')[6]) * rate;

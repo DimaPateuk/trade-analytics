@@ -67,7 +67,7 @@ async function printPrice () {
           console.log('Прогноз оправдался', bet, 'следующаяставка 1');
           bet = 1;
         }
-    }, 61000)
+    }, 70000)
   }
 }
 
@@ -106,21 +106,31 @@ async function setBet (bet = 1) {
 
 function upAmount () {
   return new Promise((res) => {
-    iframe
-      .contentDocument
-      .querySelector('[data-test="deal-select-amount-up"]')
-      .click();
-    setTimeout(() => res(), 10);
+    window.requestAnimationFrame(() => {
+      iframe
+        .contentDocument
+        .querySelector('[data-test="deal-select-amount-up"]')
+        .click();
+      setTimeout(() => res(), 50);
+    });
   });
 }
 
 function downAmount () {
   return new Promise((res) => {
-    iframe
-      .contentDocument
-      .querySelector('[data-test="deal-select-amount-down"]')
-      .click();
-    setTimeout(() => res(), 10);
+    window.requestAnimationFrame(() => {
+      iframe
+        .contentDocument
+        .querySelector('[data-test="deal-select-amount-down"]')
+        .click();
+      setTimeout(() => res(), 50);
+    });
+  });
+}
+
+function awaitTime (time = 100) {
+  return new Promise((res) => {
+    setTimeout(() => res(), time);
   });
 }
 
