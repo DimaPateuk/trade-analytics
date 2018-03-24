@@ -21,9 +21,11 @@ let moreThenTreeFail = 0;
 let info = {};
 
 let R = 0;
+let bets = [];
 function analize (line) {
   if (line.indexOf('Прогноз не оправдался') !== -1) {
-    console.log(`-${line[line.length - 1]}`);
+    // console.log(`-${line[line.length - 1]}`);
+    bets.push(parseInt(line[line.length - 1]) * -1);
     // console.log('-1');
     R += parseInt(line.split('|')[6]) * -1;
     // console.log(R);
@@ -38,11 +40,12 @@ function analize (line) {
   }
 
   if (line.indexOf('Прогноз оправдался') !== -1) {
-    console.log(`${line[line.length - 1]}`);
+    // console.log(`${line[line.length - 1]}`);
+    bets.push(parseInt(line[line.length - 1]));
     // console.log('1');
     win++;
       R += parseInt(line.split('|')[6]) * rate;
-    l &&(info[l] = info[l] ? info[l] + 1 : 1);
+    info[l] = info[l] ? info[l] + 1 : 1;
     l = 0;
     // console.log(R);
   }
@@ -50,38 +53,76 @@ function analize (line) {
 }
 const minBet = 5;
 var pricesA = {
-  1: 2*minBet * rate - minBet,
-  2: 6*minBet * rate - 3*minBet,
-  3: 1*minBet * rate - 9*minBet,
-  4: 2*minBet * rate - 10*minBet,
-  5: 6*minBet * rate - 12*minBet,
-  6: 1*minBet * rate - 18*minBet,
-  7: 2*minBet * rate - 19*minBet,
-  8: 6*minBet * rate - 21*minBet,
-  9: 1*minBet * rate - 27*minBet,
-  10: 2*minBet * rate - 28*minBet,
+  // 0: minBet * rate,
+  1: 2*minBet * rate - minBet - 2*minBet,
+  2: 6*minBet * rate - 3*minBet - 6*minBet,
+  3: 18*minBet * rate - 9*minBet - 18*minBet,
+  4: 54*minBet * rate - 27*minBet - 54*minBet,
+  5: 1*minBet * rate - 28*minBet - 1*minBet,
+  6: 1*minBet * rate - 29*minBet - 1*minBet,
+  7: 1*minBet * rate - 30*minBet - 1*minBet,
+  8: 1*minBet * rate - 31*minBet - 1*minBet,
+  9: 1*minBet * rate - 32*minBet - 1*minBet,
+  10: 1*minBet * rate - 33*minBet - 1*minBet,
 }
+
 
 var pricesB = {
-  1: 2*minBet * rate - minBet,
-  2: 6*minBet * rate - 3*minBet,
-  3: 1*minBet * rate - 9*minBet,
-  4: 1*minBet * rate - 10*minBet,
-  5: 1*minBet * rate - 11*minBet,
-  6: 1*minBet * rate - 12*minBet,
-  7: 1*minBet * rate - 13*minBet,
-  8: 1*minBet * rate - 14*minBet,
-  9: 1*minBet * rate - 15*minBet,
-  10: 1*minBet * rate - 16*minBet,
+  0: minBet * rate,
+  1: 2*minBet * rate - minBet - 2*minBet,
+  2: 6*minBet * rate - 3*minBet - 6*minBet,
+  3: 18*minBet * rate - 9*minBet - 18*minBet,
+  4: 54*minBet * rate - 27*minBet - 54*minBet,
+  5: 1*minBet * rate - 81*minBet - 1*minBet,
+  6: 2*minBet * rate - 82*minBet - 2*minBet,
+  7: 6*minBet * rate - 84*minBet - 6*minBet,
+  8: 18*minBet * rate - 102*minBet - 18*minBet,
+  9: 54*minBet * rate - 156*minBet - 54*minBet,
+  10: 1*minBet * rate - 157*minBet - 1*minBet,
 }
 
-// console.log(prices);
+console.log(pricesA);
+// console.log(pricesB);
+
+function isRightBets (bets) {
+  for (var i = 0; i < bets.length - 1; i++) {
+    if (bets[i] === -1 && (bets[i + 1] === -2 || bets[i + 1] === 2)) {
+      continue;
+    }
+    if (bets[i] === -2 && (bets[i + 1] === -6 || bets[i + 1] === 6)) {
+      continue;
+    }
+
+    if (bets[i] === -6 && (bets[i + 1] === -1 || bets[i + 1] === 1)) {
+      continue;
+    }
+
+    if (bets[i] === 1 && (bets[i + 1] === -1 || bets[i + 1] === 1)) {
+      continue;
+    }
+
+    if (bets[i] === 2 && (bets[i + 1] === 1 || bets[i + 1] === -1)) {
+      continue;
+    }
+
+    if (bets[i] === 6 && (bets[i + 1] === 1 || bets[i + 1] === -1)) {
+      continue;
+    }
+    console.log('11111111',i, bets[i], bets[i+1]);
+    return false;
+  }
+  return true;
+}
 
 function printResult () {
-  console.log(win, lose, lresult);
+  // console.log(win, lose, lresult);
   console.log(info);
+  if (!isRightBets(bets)) {
+    console.log('wrong bets!!!!!!!!');
+  }
 
   printPrices(pricesA);
+  console.log();
   // printPrices(pricesB);
 
     // console.log(R);
@@ -90,9 +131,15 @@ function printPrices(prices) {
   const result = Object.keys(info)
     .map(v => parseInt(v))
     .reduce((res, val) => {
-      console.log(info[val], prices[val]);
+      console.log(info[val], prices[val], info[val] * prices[val]);
       if (!prices[val]) return res;
       return res + info[val] * prices[val];
     }, 0);
-    console.log(result);
+
+  const result2 = Object.keys(info)
+    .map(v => parseInt(v))
+    .reduce((res, val) => {
+      return res + info[val] * val;
+    }, 0);
+    console.log(result, result2);
 } 

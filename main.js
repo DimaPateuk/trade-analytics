@@ -3,7 +3,7 @@ const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
   setInterval(printPrice, 500);
-  stopWorkAfter(2 * 60 * 60 * 1000);
+  // stopWorkAfter(2 * 60 * 60 * 1000);
   ipcRenderer.send('clear-log');
 
 });
@@ -17,7 +17,10 @@ let bet = 1;
 const betLoseMap = {
   1: 2,
   2: 6,
-  6: 1,
+  6: 18,
+  18: 54,
+  54: 'limit',
+  'limit': 'limit',
 }
 
 async function printPrice () {
@@ -36,7 +39,7 @@ async function printPrice () {
     }
 
     if (!betType) return;
-    await setBet(bet);
+    // await setBet(bet === 'limit' ? 1 : bet);
     if (betType === 'up') {
       up();
     } else {
