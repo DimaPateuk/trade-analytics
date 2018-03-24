@@ -3,7 +3,7 @@ const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
   setInterval(printPrice, 500);
-  // stopWorkAfter(60 * 60 * 1000);
+  stopWorkAfter(3 * 60 * 60 * 1000);
   ipcRenderer.send('clear-log');
 
 });
@@ -20,7 +20,7 @@ const betLoseMap = {
   6: 1,
 }
 
-function printPrice () {
+async function printPrice () {
   if (stopWork) {
     return;
   }
@@ -36,7 +36,7 @@ function printPrice () {
     }
 
     if (!betType) return;
-    setBet(bet);
+    await setBet(bet);
     if (betType === 'up') {
       up();
     } else {
@@ -46,11 +46,10 @@ function printPrice () {
     console.log('beeeeet!!!', betType);
 
     const priceStartMy = prices[prices.length - 1];
-    const time = new Date;
     inProgress = true;
     setTimeout(() => {
         const betInfo = iframe.contentDocument.querySelector('.user-deals-table__body').firstChild.children;
-        const time = betInfo[2].innerText.trim()
+        const time = betInfo[2].innerText.trim().split('\n').join(" - ");
         const priceStart = `${betInfo[3].innerText.trim()}|${priceStartMy}`;
         const priceEnd = `${betInfo[4].innerText.trim()}|${prices[prices.length - 1]}`;
         const result = betInfo[8].innerText.trim();
@@ -84,7 +83,7 @@ let betMapPriceValue = {
   6: 30,
 }
 
-function setBet (bet = 1) {
+window.f = async function setBet (bet = 1) {
   let current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
 
   if (betMapPriceValue[bet] === current) {
@@ -93,16 +92,37 @@ function setBet (bet = 1) {
 
   const count = Math.abs(betMapPriceValue[bet] - current) / 5;
   if (betMapPriceValue[bet] > current) {
-    for (var i = 0; i < count; i++) {
-      iframe.contentDocument.querySelector('[data-test="deal-select-amount-up"]').click();
+    while (betMapPriceValue[bet] !== current) {
+      await upAmount();
+      current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
     }
   } else {
-    for (var i = 0; i < count; i++) {
-      iframe.contentDocument.querySelector('[data-test="deal-select-amount-down"]').click();
+    while (betMapPriceValue[bet] !== current) {
+      await downAmount();
+      current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
     }
   }
 }
 
+function upAmount () {
+  return new Promise((res) => {
+    iframe
+      .contentDocument
+      .querySelector('[data-test="deal-select-amount-up"]')
+      .click();
+    setTimeout(() => res(), 10);
+  });
+}
+
+function downAmount () {
+  return new Promise((res) => {
+    iframe
+      .contentDocument
+      .querySelector('[data-test="deal-select-amount-down"]')
+      .click();
+    setTimeout(() => res(), 10);
+  });
+}
 
 function up (bet = 1) {
   iframe.contentDocument.querySelector('[data-test="deal-button-up"]').click()
@@ -139,7 +159,7 @@ function addRow (betType, time, priceStart, priceEnd, res, bet) {
 
   ipcRenderer.send('asynchronous-reply', `${betType}|${time}|${priceStart}|${priceEnd}|${res}|${bet}`);
 
-  table.appendChild(result.row);
+  // table.appendChild(result.row);
 }
 
 function createTrainValue (val, date) {
