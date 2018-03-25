@@ -9,7 +9,7 @@ function processFile(inputFile, onLine, onClose) {
 
     rl.on('close', onClose);
 }
-processFile('log.txt', analize, printResult);
+processFile('log4.txt', analize, printResult);
 
 const rate = 1.7;
 let win = 0;
@@ -23,8 +23,9 @@ let info = {};
 let R = 0;
 let bets = [];
 function analize (line) {
+  const brtMy = parseInt(line.split("|")[line.split("|").length - 1]);
   if (line.indexOf('Прогноз не оправдался') !== -1) {
-    // console.log(`-${line[line.length - 1]}`);
+    console.log(-brtMy || -1);
     bets.push(parseInt(line[line.length - 1]) * -1);
     // console.log('-1');
     R += parseInt(line.split('|')[6]) * -1;
@@ -40,7 +41,7 @@ function analize (line) {
   }
 
   if (line.indexOf('Прогноз оправдался') !== -1) {
-    // console.log(`${line[line.length - 1]}`);
+    console.log(brtMy|| 1);
     bets.push(parseInt(line[line.length - 1]));
     // console.log('1');
     win++;
@@ -53,7 +54,7 @@ function analize (line) {
 }
 const minBet = 5;
 var pricesA = {
-  // 0: minBet * rate,
+  0: minBet * rate,
   1: 2*minBet * rate - minBet - 2*minBet,
   2: 6*minBet * rate - 3*minBet - 6*minBet,
   3: 18*minBet * rate - 9*minBet - 18*minBet,
@@ -66,23 +67,7 @@ var pricesA = {
   10: 1*minBet * rate - 33*minBet - 1*minBet,
 }
 
-
-var pricesB = {
-  0: minBet * rate,
-  1: 2*minBet * rate - minBet - 2*minBet,
-  2: 6*minBet * rate - 3*minBet - 6*minBet,
-  3: 18*minBet * rate - 9*minBet - 18*minBet,
-  4: 54*minBet * rate - 27*minBet - 54*minBet,
-  5: 1*minBet * rate - 81*minBet - 1*minBet,
-  6: 2*minBet * rate - 82*minBet - 2*minBet,
-  7: 6*minBet * rate - 84*minBet - 6*minBet,
-  8: 18*minBet * rate - 102*minBet - 18*minBet,
-  9: 54*minBet * rate - 156*minBet - 54*minBet,
-  10: 1*minBet * rate - 157*minBet - 1*minBet,
-}
-
 console.log(pricesA);
-// console.log(pricesB);
 
 function isRightBets (bets) {
   for (var i = 0; i < bets.length - 1; i++) {
@@ -116,14 +101,11 @@ function isRightBets (bets) {
 
 function printResult () {
   // console.log(win, lose, lresult);
-  console.log(info);
-  if (!isRightBets(bets)) {
-    console.log('wrong bets!!!!!!!!');
-  }
-
-  printPrices(pricesA);
-  console.log();
-  // printPrices(pricesB);
+  // console.log(info);
+  // if (!isRightBets(bets)) {
+  //   console.log('wrong bets!!!!!!!!');
+  // }
+  // printPrices(pricesA);
 
     // console.log(R);
 }
@@ -131,7 +113,7 @@ function printPrices(prices) {
   const result = Object.keys(info)
     .map(v => parseInt(v))
     .reduce((res, val) => {
-      console.log(info[val], prices[val], info[val] * prices[val]);
+      console.log(val, info[val], prices[val], info[val] * prices[val]);
       if (!prices[val]) return res;
       return res + info[val] * prices[val];
     }, 0);

@@ -24,6 +24,11 @@ const betLoseMap = {
 }
 
 async function printPrice () {
+  const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
+  // console.log(myPRISEE);
+  if (myPRISEE < 8000) {
+    return;
+  }
   if (stopWork) {
     return;
   }
@@ -39,7 +44,7 @@ async function printPrice () {
     }
 
     if (!betType) return;
-    // await setBet(bet === 'limit' ? 1 : bet);
+    await setBet(bet);
     if (betType === 'up') {
       up();
     } else {
@@ -57,7 +62,9 @@ async function printPrice () {
         const priceEnd = `${betInfo[4].innerText.trim()}|${prices[prices.length - 1]}`;
         const result = betInfo[8].innerText.trim();
 
-        addRow(betType, time, priceStart, priceEnd, result, bet);
+        const betInPlatform = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
+
+        addRow(betType, time, priceStart, result, betInPlatform, bet);
         inProgress = false;
         if (result.indexOf('Прогноз не оправдался') !== -1) {
           bet = betLoseMap[bet];
@@ -84,8 +91,10 @@ let betMapPriceValue = {
   1: 5,
   2: 10,
   6: 30,
+  18: 90,
+  54: 270,
+  'limit': 5,
 }
-
 async function setBet (bet = 1) {
   let current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
 
@@ -106,6 +115,7 @@ async function setBet (bet = 1) {
     }
   }
 }
+window.f = setBet;
 
 function upAmount () {
   return new Promise((res) => {
@@ -133,7 +143,9 @@ function downAmount () {
 
 function awaitTime (time = 100) {
   return new Promise((res) => {
-    setTimeout(() => res(), time);
+    window.requestAnimationFrame(() => {
+      setTimeout(() => res(), time);
+    });
   });
 }
 
