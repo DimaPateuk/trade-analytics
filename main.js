@@ -14,6 +14,8 @@ let inProgress = false;
 let stopWork = false;
 let bet = 1;
 
+let countMinutes = 5;
+
 const betLoseMap = {
   1: 2,
   2: 6,
@@ -29,7 +31,7 @@ async function printPrice () {
   }
   const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
   // console.log(myPRISEE);
-  if (myPRISEE < 8000) {
+  if (myPRISEE < 7000) {
     return;
   }
   if (stopWork) {
@@ -39,7 +41,7 @@ async function printPrice () {
   prices.push(createTrainValue(parseFloat(price)));
 
   const betType = analize(prices);
-  if (prices.length > 60 * 2) {
+  if (prices.length > 60 * 2 * countMinutes) {
     prices = prices.slice(1);
 
     if (inProgress) {
@@ -48,7 +50,7 @@ async function printPrice () {
 
     if (!betType) return;
     setBetInProgress = true;
-    await setBet(bet);
+    // await setBet(bet);
     if (betType === 'up') {
       up();
     } else {
@@ -82,7 +84,7 @@ async function printPrice () {
           console.log('Прогноз оправдался', bet, 'следующаяставка 1');
           bet = 1;
         }
-    }, 63000)
+    }, (60000 * countMinutes) + 3000)
   }
 }
 
@@ -163,33 +165,7 @@ function down (bet = 1) {
 }
 
 function addRow (betType, time, priceStart, priceEnd, res, bet) {
-  const table = document.querySelector('.table');
-
-  const result = {
-    row: document.createElement('tr'),
-    betType: document.createElement('th'),
-    time: document.createElement('th'),
-    priceStart: document.createElement('th'),
-    priceEnd: document.createElement('th'),
-    result: document.createElement('th'),
-  };
-
-  result.betType.innerHTML = betType;
-  result.time.innerHTML = time;
-  result.priceStart.innerHTML = priceStart;
-  result.priceEnd.innerHTML = priceEnd;
-  result.result.innerHTML = res;
-
-  result.row.appendChild(result.betType);
-  result.row.appendChild(result.time);
-  result.row.appendChild(result.priceStart);
-  result.row.appendChild(result.priceEnd);
-  result.row.appendChild(result.result);
-
-
   ipcRenderer.send('asynchronous-reply', `${betType}|${time}|${priceStart}|${priceEnd}|${res}|${bet}`);
-
-  // table.appendChild(result.row);
 }
 
 function createTrainValue (val, date) {
@@ -219,9 +195,9 @@ function analize (arr) {
 
   const unstableCoefficient = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
   const isUnstable = unstableCoefficient > 0.3;
-  // console.log(unstableCoefficient, countMore, countLess, arr.length);
+  console.log(unstableCoefficient, countMore, countLess, arr.length);
 
-  // if (isUnstable) return null;
+  if (isUnstable) return null;
 
   return arr[0] > arr[arr.length - 1]
     ? 'down'
