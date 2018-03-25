@@ -70,7 +70,7 @@ async function printPrice () {
           console.log('Прогноз оправдался', bet, 'следующаяставка 1');
           bet = 1;
         }
-    }, 70000)
+    }, 63000)
   }
 }
 
