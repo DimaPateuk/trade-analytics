@@ -9,7 +9,7 @@ function processFile(inputFile, onLine, onClose) {
 
     rl.on('close', onClose);
 }
-processFile('log3.txt', analize, printResult);
+processFile('log.txt', analize, printResult);
 
 const rate = 0.7;
 let win = 0;
@@ -101,11 +101,11 @@ var pricesA = {
 console.log(pricesA);
 
 function printResult () {
-  // console.log(win, lose, lresult);
+  console.log(win, lose, lresult);
   console.log(info);
-  for (var i = 0; i < 11; i++) {
-    info[i] = info[i] ? info[i] : 1;
-  }
+  // for (var i = 0; i < 11; i++) {
+  //   info[i] = info[i] ? info[i] : 1;
+  // }
   for (var i = 0; i < 4; i++) {
     info[i] = info[i] * 1;
   }

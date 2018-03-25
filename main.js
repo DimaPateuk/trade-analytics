@@ -14,7 +14,8 @@ let inProgress = false;
 let stopWork = false;
 let bet = 1;
 
-let countMinutes = 5;
+let countMinutesBet = 5;
+let countMinutesAnalize = 2;
 
 const betLoseMap = {
   1: 2,
@@ -41,7 +42,7 @@ async function printPrice () {
   prices.push(createTrainValue(parseFloat(price)));
 
   const betType = analize(prices);
-  if (prices.length > 60 * 2 * countMinutes) {
+  if (prices.length > 60 * 2 * countMinutesAnalize) {
     prices = prices.slice(1);
 
     if (inProgress) {
@@ -84,7 +85,7 @@ async function printPrice () {
           console.log('Прогноз оправдался', bet, 'следующаяставка 1');
           bet = 1;
         }
-    }, (60000 * countMinutes) + 3000)
+    }, (60000 * countMinutesBet) + 3000)
   }
 }
 
