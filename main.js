@@ -22,8 +22,11 @@ const betLoseMap = {
   54: 'limit',
   'limit': 'limit',
 }
-
+let setBetInProgress = false;
 async function printPrice () {
+  if (setBetInProgress) {
+    return;
+  }
   const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
   // console.log(myPRISEE);
   if (myPRISEE < 8000) {
@@ -44,6 +47,7 @@ async function printPrice () {
     }
 
     if (!betType) return;
+    setBetInProgress = true;
     await setBet(bet);
     if (betType === 'up') {
       up();
@@ -55,6 +59,7 @@ async function printPrice () {
 
     const priceStartMy = prices[prices.length - 1];
     inProgress = true;
+    setBetInProgress = false;
     setTimeout(() => {
         const betInfo = iframe.contentDocument.querySelector('.user-deals-table__body').firstChild.children;
         const time = betInfo[2].innerText.trim().split('\n').join(" - ");
