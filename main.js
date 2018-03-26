@@ -2,9 +2,9 @@ const iframe = document.querySelector('.iframe');
 const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
-  setInterval(printPrice, 500);
+  setInterval(printPrice, 100);
   // stopWorkAfter(2 * 60 * 60 * 1000);
-  ipcRenderer.send('clear-log');
+  // ipcRenderer.send('clear-log');
 
 });
 
@@ -14,8 +14,8 @@ let inProgress = false;
 let stopWork = false;
 let bet = 1;
 
-let countMinutesBet = 5;
-let countMinutesAnalize = 2;
+let countMinutesBet = 1;
+let countMinutesAnalize = 1;
 
 const betLoseMap = {
   1: 2,
@@ -27,10 +27,13 @@ const betLoseMap = {
 }
 let setBetInProgress = false;
 async function printPrice () {
+  const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
+  const price = parseFloat(iframe.contentDocument.querySelector('.pin_text').innerHTML);
+  ipcRenderer.send('price-log', price);
+  console.log(price);
   if (setBetInProgress) {
     return;
   }
-  const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
   // console.log(myPRISEE);
   if (myPRISEE < 7000) {
     return;
@@ -38,12 +41,12 @@ async function printPrice () {
   if (stopWork) {
     return;
   }
-  const price = iframe.contentDocument.querySelector('.pin_text').innerHTML;
-  prices.push(createTrainValue(parseFloat(price)));
+  prices.push(createTrainValue(price));
 
-  const betType = analize(prices);
-  if (prices.length > 60 * 2 * countMinutesAnalize) {
+  // const betType = analize(prices);
+  if (prices.length > 60 * 10 * countMinutesAnalize) {
     prices = prices.slice(1);
+    return;
 
     if (inProgress) {
       return;
@@ -205,3 +208,4 @@ function analize (arr) {
     : 'up';
 
 }
+// { '0': 8, '1': 6, '2': 2, '3': 2, '4': 1 }
