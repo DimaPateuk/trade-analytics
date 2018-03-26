@@ -29,8 +29,8 @@ let setBetInProgress = false;
 async function printPrice () {
   const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
   const price = parseFloat(iframe.contentDocument.querySelector('.pin_text').innerHTML);
-  ipcRenderer.send('price-log', price);
-  console.log(price);
+  const incomeValue = iframe.contentDocument.querySelector('.income__value').innerText);
+  ipcRenderer.send('price-log', `${price} ${parseInt(incomeValue)}`);
   if (setBetInProgress) {
     return;
   }
@@ -46,6 +46,7 @@ async function printPrice () {
   // const betType = analize(prices);
   if (prices.length > 60 * 10 * countMinutesAnalize) {
     prices = prices.slice(1);
+    const priceStartMy = prices[prices.length - 1];
     return;
 
     if (inProgress) {
@@ -61,9 +62,8 @@ async function printPrice () {
       down();
     }
 
-    console.log('beeeeet!!!', betType);
+    console.log('beeeeet!!!', betType, priceStartMy);
 
-    const priceStartMy = prices[prices.length - 1];
     inProgress = true;
     setBetInProgress = false;
     setTimeout(() => {
@@ -75,7 +75,7 @@ async function printPrice () {
 
         const betInPlatform = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
 
-        addRow(betType, time, priceStart, result, betInPlatform, bet);
+        addRow(betType, time, `${priceStart}|${priceEnd}`, result, betInPlatform, bet);
         inProgress = false;
         if (result.indexOf('Прогноз не оправдался') !== -1) {
           bet = betLoseMap[bet];
