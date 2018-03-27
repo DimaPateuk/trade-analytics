@@ -9,7 +9,7 @@ function processFile(inputFile, onLine, onClose = () => {}) {
 
     rl.on('close', onClose);
 }
-processFile('1', read, analize);
+processFile('price-log-Mon Mar 26 2018 19-23-13 GMT+0300 (Belarus Standard Time)', read, analize);
 
 const prices = [];
 const incoming = [];
@@ -59,8 +59,9 @@ function analize () {
 
       wins += result;
 
-      console.log(result, bet, unstableCoefficient, i, parseFloat(arr[0]) - parseFloat(arr[arr.length - 1]));
+      // console.log(result, bet, unstableCoefficient, i, parseFloat(arr[0]) - parseFloat(arr[arr.length - 1]));
       // console.log(result);
+      console.log(parseFloat(arr[0]));
 
       // console.log(
       //   result === -1

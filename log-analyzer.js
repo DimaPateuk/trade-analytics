@@ -31,7 +31,7 @@ function analize (line) {
     myBETS.push(-brtMy);
     // console.log('-1');
     R += parseInt(line.split('|')[6]) * -1;
-    // console.log(R);
+    console.log(line.split("|")[2]);
     lose++;
     l++;
     infoWin[w] = infoWin[w] ? infoWin[w] + 1 : 1;
@@ -47,6 +47,7 @@ function analize (line) {
   if (line.indexOf('Прогноз оправдался') !== -1) {
     // console.log(brtMy * rate);
     // console.log('1');
+    console.log(line.split("|")[2]);
     win++;
     w++;
       R += parseInt(line.split('|')[6]) * rate;
@@ -103,11 +104,11 @@ var pricesA = {
 
 
 
-console.log(pricesA);
+// console.log(pricesA);
 
 function printResult () {
   // console.log(win, lose, lresult);
-  console.log(info);
+  // console.log(info);
   // console.log(infoWin);
   // for (var i = 0; i < 11; i++) {
   //   info[i] = info[i] ? info[i] : 1;
@@ -120,7 +121,7 @@ function printResult () {
   // }
   // console.log(info);
   // }
-  printPrices(pricesA);
+  // printPrices(pricesA);
 
     // console.log(R);
     const t = myBETS.reverse();

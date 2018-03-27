@@ -2,7 +2,7 @@ const iframe = document.querySelector('.iframe');
 const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
-  setInterval(printPrice, 100);
+  setInterval(printPrice, 25);
   // stopWorkAfter(2 * 60 * 60 * 1000);
   // ipcRenderer.send('clear-log');
 
@@ -25,17 +25,15 @@ const betLoseMap = {
   54: 'limit',
   'limit': 'limit',
 }
-let setBetInProgress = false;
+
 async function printPrice () {
   const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
   const price = parseFloat(iframe.contentDocument.querySelector('.pin_text').innerHTML);
   const incomeValue = parseInt(iframe.contentDocument.querySelector('.income__value').innerText);
   ipcRenderer.send('price-log', `${price} ${incomeValue}`);
-  if (setBetInProgress) {
-    return;
-  }
+
   // console.log(myPRISEE);
-  if (myPRISEE < 7000) {
+  if (myPRISEE < 6000) {
     return;
   }
   if (stopWork) {
@@ -44,7 +42,7 @@ async function printPrice () {
   prices.push(createTrainValue(price));
 
   const betType = analize(prices);
-  if (prices.length > 60 * 10 * countMinutesAnalize) {
+  if (prices.length > 60 * 40 * countMinutesAnalize) {
     prices = prices.slice(1);
     const priceStartMy = prices[prices.length - 1];
 
@@ -53,29 +51,30 @@ async function printPrice () {
     }
 
     if (!betType) return;
-    setBetInProgress = true;
-    // await setBet(bet);
+
     if (betType === 'up') {
       up();
     } else {
       down();
     }
-
-    console.log('beeeeet!!!', betType, priceStartMy);
-
     inProgress = true;
-    setBetInProgress = false;
+    setTimeout(() => {
+
+      const p = parseFloat(iframe.contentDocument.querySelector('.user-deals-table.user-deals-table_turbo .user-deals-table__body').firstChild.children[3].innerText.trim());
+      ipcRenderer.send('set-price-log', `${priceStartMy} ${p} ${priceStartMy === p} ${priceStartMy - p}`);
+
+      console.log('beeeeet!!!', betType, priceStartMy, p, priceStartMy === p);
+    }, 5000);
     setTimeout(() => {
         const betInfo = iframe.contentDocument.querySelector('.user-deals-table__body').firstChild.children;
         const time = betInfo[2].innerText.trim().split('\n').join(" - ");
         const priceStart = `${betInfo[3].innerText.trim()}|${priceStartMy}`;
-        const priceEnd = `${betInfo[4].innerText.trim()}|${prices[prices.length - 1]}`;
+        const priceEnd = `${betInfo[4].innerText.trim()}|${prices[prices.length - 30]}`;
         const result = betInfo[8].innerText.trim();
 
         const betInPlatform = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
 
         addRow(betType, time, `${priceStart}|${priceEnd}`, result, betInPlatform, bet);
-        inProgress = false;
         if (result.indexOf('Прогноз не оправдался') !== -1) {
           bet = betLoseMap[bet];
 
@@ -87,7 +86,9 @@ async function printPrice () {
           console.log('Прогноз оправдался', bet, 'следующаяставка 1');
           bet = 1;
         }
-    }, (60000 * countMinutesBet) + 3000)
+        // await setBet(bet);
+        inProgress = false;
+    }, (60000 * countMinutesBet) + 3000);
   }
 }
 
@@ -198,7 +199,7 @@ function analize (arr) {
 
   const unstableCoefficient = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
   const isUnstable = unstableCoefficient > 0.3;
-  console.log(unstableCoefficient, countMore, countLess, arr.length);
+  // console.log(unstableCoefficient, countMore, countLess, arr.length);
 
   if (isUnstable) return null;
 
@@ -207,4 +208,3 @@ function analize (arr) {
     : 'up';
 
 }
-// { '0': 8, '1': 6, '2': 2, '3': 2, '4': 1 }

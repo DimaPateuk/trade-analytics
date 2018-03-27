@@ -22,6 +22,10 @@ function createWindow () {
     fs.appendFileSync(priceLogName, arg + '\r\n');
   })
 
+  ipcMain.on('set-price-log', (event, arg) => {
+    fs.appendFileSync('set-price', arg + '\r\n');
+  })
+
   ipcMain.on('clear-log', (event, arg) => {
       fs.appendFileSync('log.txt', '1');
       fs.unlinkSync('log.txt');
