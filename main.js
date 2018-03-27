@@ -30,7 +30,7 @@ async function printPrice () {
   const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
   const price = parseFloat(iframe.contentDocument.querySelector('.pin_text').innerHTML);
   const incomeValue = parseInt(iframe.contentDocument.querySelector('.income__value').innerText);
-  ipcRenderer.send('price-log', `${price} ${incomeValue}`);
+  // ipcRenderer.send('price-log', `${price} ${incomeValue}`);
 
   // console.log(myPRISEE);
   if (myPRISEE < 6000) {

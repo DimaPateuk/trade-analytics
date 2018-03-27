@@ -30,8 +30,8 @@ function analize (line) {
     // console.log(-brtMy);
     myBETS.push(-brtMy);
     // console.log('-1');
-    R += parseInt(line.split('|')[6]) * -1;
-    console.log(line.split("|")[2]);
+    R += parseInt(line.split('|')[8]) * -1;
+    // console.log(line.split("|")[2]);
     lose++;
     l++;
     infoWin[w] = infoWin[w] ? infoWin[w] + 1 : 1;
@@ -47,15 +47,16 @@ function analize (line) {
   if (line.indexOf('Прогноз оправдался') !== -1) {
     // console.log(brtMy * rate);
     // console.log('1');
-    console.log(line.split("|")[2]);
+    // console.log(line.split("|")[2]);
     win++;
     w++;
-      R += parseInt(line.split('|')[6]) * rate;
+      R += parseInt(line.split('|')[8]);
     info[l] = info[l] ? info[l] + 1 : 1;
     myBETS.push(brtMy * rate);
     l = 0;
     // console.log(R);
   }
+  console.log(R);
 
 }
 const minBet = 5;
@@ -121,7 +122,7 @@ function printResult () {
   // }
   // console.log(info);
   // }
-  // printPrices(pricesA);
+  printPrices(pricesA);
 
     // console.log(R);
     const t = myBETS.reverse();

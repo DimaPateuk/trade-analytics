@@ -9,7 +9,7 @@ function processFile(inputFile, onLine, onClose = () => {}) {
 
     rl.on('close', onClose);
 }
-processFile('price-log-Mon Mar 26 2018 19-23-13 GMT+0300 (Belarus Standard Time)', read, analize);
+processFile('12', read, analize);
 
 const prices = [];
 const incoming = [];
@@ -18,17 +18,17 @@ function read (line) {
 
 }
 
-const step = 63 * 10 * 5;
+const step = 63 * 40 * 5;
 
 function analize () {
   let arr = [];
   let wins = 0;
-
+  console.log(prices.length, prices.length / step);
   for (var i = 0; i < prices.length / (step); i++) {
   // for (var i = 0; i < 10; i++) {
 
     arr = prices.slice(i * step, i * step + step);
-    arr = arr.splice(0, step - 30);
+    arr = arr.splice(0, step - 3 * 40);
     // if (arr.length <= step) continue;
     // console.log(arr.length);
 
@@ -38,10 +38,10 @@ function analize () {
     // console.log(unstableCoefficient);
     i++;
     arr = prices.slice(i * step, i * step + step);
-    arr = arr.splice(0, step - 30);
+    arr = arr.splice(0, step - 3 * 40);
 
     var [price, inc] = arr[0].split(' ');
-
+    console.log(price);
     // if (bet && inc >= 70) {
     if (bet) {
 
@@ -59,9 +59,9 @@ function analize () {
 
       wins += result;
 
-      // console.log(result, bet, unstableCoefficient, i, parseFloat(arr[0]) - parseFloat(arr[arr.length - 1]));
+      console.log(result, bet, unstableCoefficient, i, parseFloat(arr[0]) - parseFloat(arr[arr.length - 1]));
       // console.log(result);
-      console.log(parseFloat(arr[0]));
+      // console.log(parseFloat(arr[0]));
 
       // console.log(
       //   result === -1
