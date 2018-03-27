@@ -14,8 +14,8 @@ let inProgress = false;
 let stopWork = false;
 let bet = 1;
 
-let countMinutesBet = 1;
-let countMinutesAnalize = 1;
+let countMinutesBet = 5;
+let countMinutesAnalize = 5;
 
 const betLoseMap = {
   1: 2,
@@ -29,8 +29,8 @@ let setBetInProgress = false;
 async function printPrice () {
   const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
   const price = parseFloat(iframe.contentDocument.querySelector('.pin_text').innerHTML);
-  const incomeValue = iframe.contentDocument.querySelector('.income__value').innerText);
-  ipcRenderer.send('price-log', `${price} ${parseInt(incomeValue)}`);
+  const incomeValue = parseInt(iframe.contentDocument.querySelector('.income__value').innerText);
+  ipcRenderer.send('price-log', `${price} ${incomeValue}`);
   if (setBetInProgress) {
     return;
   }
@@ -43,11 +43,10 @@ async function printPrice () {
   }
   prices.push(createTrainValue(price));
 
-  // const betType = analize(prices);
+  const betType = analize(prices);
   if (prices.length > 60 * 10 * countMinutesAnalize) {
     prices = prices.slice(1);
     const priceStartMy = prices[prices.length - 1];
-    return;
 
     if (inProgress) {
       return;

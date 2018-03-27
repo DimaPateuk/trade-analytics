@@ -9,21 +9,20 @@ function processFile(inputFile, onLine, onClose = () => {}) {
 
     rl.on('close', onClose);
 }
-processFile('price-log-Mon Mar 26 2018 14-44-54 GMT+0300 (Belarus Standard Time)', read, analize);
+processFile('1', read, analize);
 
 const prices = [];
+const incoming = [];
 function read (line) {
-  const price = parseFloat(line);
-  prices.push(price);
+  prices.push(line);
 
 }
 
-const step = 63 * 10;
+const step = 63 * 10 * 5;
 
 function analize () {
   let arr = [];
   let wins = 0;
-
 
   for (var i = 0; i < prices.length / (step); i++) {
   // for (var i = 0; i < 10; i++) {
@@ -33,32 +32,51 @@ function analize () {
     // if (arr.length <= step) continue;
     // console.log(arr.length);
 
-    var {bet, unstableCoefficient} = analizePrices(arr);
-    // console.log(bet);
 
+
+    var {bet, unstableCoefficient} = analizePrices(arr.map(parseFloat));
+    // console.log(unstableCoefficient);
+    i++;
+    arr = prices.slice(i * step, i * step + step);
+    arr = arr.splice(0, step - 30);
+
+    var [price, inc] = arr[0].split(' ');
+
+    // if (bet && inc >= 70) {
     if (bet) {
+
       let result;
 
       if (bet === 'up') {
-        result = arr[1] < arr[arr.length - 1]
+        result = parseFloat(arr[0]) < parseFloat(arr[arr.length - 1])
           ? 1
           : -1;
       } else {
-        result = arr[1] > arr[arr.length - 1]
+        result = parseFloat(arr[0]) > parseFloat(arr[arr.length - 1])
           ? 1
           : -1;
       }
 
       wins += result;
 
-      console.log(result, bet, unstableCoefficient, i);
+      console.log(result, bet, unstableCoefficient, i, parseFloat(arr[0]) - parseFloat(arr[arr.length - 1]));
+      // console.log(result);
+
+      // console.log(
+      //   result === -1
+      //     ? 'Прогноз оправдался'
+      //     : 'Прогноз не оправдался'
+      // );
 
     }
   }
 
 }
 
+let qwe = 'down';
+
 function analizePrices (arr) {
+
   let countMore = 0;
   let countLess = 0;
   for (var i = 0; i < arr.length; i++) {
@@ -74,7 +92,7 @@ function analizePrices (arr) {
   // console.log(unstableCoefficient, countMore, countLess, arr.length);
   // console.log(unstableCoefficient);
 
-  if (isUnstable) return {};
+  if (isUnstable) return {unstableCoefficient};
 
   return {
       bet: arr[0] > arr[arr.length - 1]
