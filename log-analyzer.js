@@ -56,7 +56,7 @@ function analize (line) {
     l = 0;
     // console.log(R);
   }
-  console.log(R);
+  //console.log(R);
 
 }
 const minBet = 5;
@@ -109,7 +109,7 @@ var pricesA = {
 
 function printResult () {
   // console.log(win, lose, lresult);
-  // console.log(info);
+  console.log(info);
   // console.log(infoWin);
   // for (var i = 0; i < 11; i++) {
   //   info[i] = info[i] ? info[i] : 1;

@@ -65,7 +65,7 @@ async function printPrice () {
 
       console.log('beeeeet!!!', betType, priceStartMy, p, priceStartMy === p);
     }, 5000);
-    setTimeout(() => {
+    setTimeout(async () => {
         const betInfo = iframe.contentDocument.querySelector('.user-deals-table__body').firstChild.children;
         const time = betInfo[2].innerText.trim().split('\n').join(" - ");
         const priceStart = `${betInfo[3].innerText.trim()}|${priceStartMy}`;
@@ -86,7 +86,7 @@ async function printPrice () {
           console.log('Прогноз оправдался', bet, 'следующаяставка 1');
           bet = 1;
         }
-        // await setBet(bet);
+        await setBet(bet);
         inProgress = false;
     }, (60000 * countMinutesBet) + 3000);
   }
