@@ -3,6 +3,7 @@ const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
   setInterval(printPrice, 25);
+  relodAfter(2 * 60 * 60 * 1000);
   // stopWorkAfter(2 * 60 * 60 * 1000);
   // ipcRenderer.send('clear-log');
 
@@ -16,6 +17,8 @@ let bet = 1;
 
 let countMinutesBet = 5;
 let countMinutesAnalize = 5;
+
+let forceRelod = false;
 
 const betLoseMap = {
   1: 2,
@@ -87,6 +90,10 @@ async function printPrice () {
           bet = 1;
         }
         await setBet(bet);
+        if (forceRelod) {
+          window.location.reload();
+          return;
+        }
         inProgress = false;
     }, (60000 * countMinutesBet) + 3000);
   }
@@ -95,6 +102,11 @@ async function printPrice () {
 function stopWorkAfter(time) {
   setTimeout(() => {
     stopWork = true;
+  }, time)
+}
+function relodAfter(time) {
+  setTimeout(() => {
+    forceRelod = true;
   }, time)
 }
 
