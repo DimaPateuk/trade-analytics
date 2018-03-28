@@ -3,7 +3,7 @@ const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
   setInterval(printPrice, 25);
-  relodAfter(2 * 60 * 60 * 1000);
+  relodAfter(4 * 60 * 60 * 1000);
   // stopWorkAfter(2 * 60 * 60 * 1000);
   // ipcRenderer.send('clear-log');
 
@@ -88,12 +88,13 @@ async function printPrice () {
 
           console.log('Прогноз оправдался', bet, 'следующаяставка 1');
           bet = 1;
+          if (forceRelod) {
+            await setBet(bet);
+            window.location.reload();
+            return;
+          }
         }
         await setBet(bet);
-        if (forceRelod) {
-          window.location.reload();
-          return;
-        }
         inProgress = false;
     }, (60000 * countMinutesBet) + 3000);
   }
