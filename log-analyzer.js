@@ -75,37 +75,37 @@ const minBet = 5;
 //   10: 1*minBet * rate - 33*minBet,
 // };
 
-// var pricesA = {
-//   0: minBet * rate,
-//   1: 2*minBet * rate - minBet,
-//   2: 6*minBet * rate - 3*minBet,
-//   3: 18*minBet * rate - 9*minBet,
-//   4: 54*minBet * rate - 27*minBet,
-//   5: 1*minBet * rate - 81*minBet,
-//   6: 1*minBet * rate - 82*minBet,
-//   7: 1*minBet * rate - 83*minBet,
-//   8: 1*minBet * rate - 84*minBet,
-//   9: 1*minBet * rate - 85*minBet,
-//   10: 1*minBet * rate - 86*minBet,
-// };
-
 var pricesA = {
   0: minBet * rate,
   1: 2*minBet * rate - minBet,
   2: 6*minBet * rate - 3*minBet,
   3: 18*minBet * rate - 9*minBet,
   4: 54*minBet * rate - 27*minBet,
-  5: 162*minBet * rate - 81*minBet,
-  6: 1*minBet * rate - 243*minBet,
-  7: 1*minBet * rate - 244*minBet,
-  8: 1*minBet * rate - 245*minBet,
-  9: 1*minBet * rate - 246*minBet,
-  10: 1*minBet * rate - 247*minBet,
+  5: 1*minBet * rate - 81*minBet,
+  6: 1*minBet * rate - 82*minBet,
+  7: 1*minBet * rate - 83*minBet,
+  8: 1*minBet * rate - 84*minBet,
+  9: 1*minBet * rate - 85*minBet,
+  10: 1*minBet * rate - 86*minBet,
 };
 
+// var pricesA = {
+//   0: minBet * rate,
+//   1: 2*minBet * rate - minBet,
+//   2: 6*minBet * rate - 3*minBet,
+//   3: 18*minBet * rate - 9*minBet,
+//   4: 54*minBet * rate - 27*minBet,
+//   5: 162*minBet * rate - 81*minBet,
+//   6: 1*minBet * rate - 243*minBet,
+//   7: 1*minBet * rate - 244*minBet,
+//   8: 1*minBet * rate - 245*minBet,
+//   9: 1*minBet * rate - 246*minBet,
+//   10: 1*minBet * rate - 247*minBet,
+// };
 
 
-// console.log(pricesA);
+
+console.log(pricesA);
 
 function printResult () {
   // console.log(win, lose, lresult);

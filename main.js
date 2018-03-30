@@ -10,6 +10,8 @@ iframe.addEventListener('load', () => {
 });
 
 let prices = [];
+let logPriceName = `log-price-${(new Date()).toString().split(':').join('-')}`;
+let pricesForLog = [];
 
 let inProgress = false;
 let stopWork = false;
@@ -33,7 +35,6 @@ async function printPrice () {
   const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
   const price = parseFloat(iframe.contentDocument.querySelector('.pin_text').innerHTML);
   const incomeValue = parseInt(iframe.contentDocument.querySelector('.income__value').innerText);
-  // ipcRenderer.send('price-log', `${price} ${incomeValue}`);
 
   // console.log(myPRISEE);
   if (myPRISEE < 6000) {
@@ -43,6 +44,16 @@ async function printPrice () {
     return;
   }
   prices.push(createTrainValue(price));
+  pricesForLog.push(`${price} ${incomeValue}`);
+
+
+  if (pricesForLog.length > 200) {
+    ipcRenderer.send('price-log', {
+      name: logPriceName,
+      prices: pricesForLog,
+    });
+    pricesForLog = [];
+  }
 
   const betType = analize(prices);
   if (prices.length > 60 * 40 * countMinutesAnalize) {
@@ -120,6 +131,7 @@ let betMapPriceValue = {
   'limit': 5,
 }
 async function setBet (bet = 1) {
+  return;
   let current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
 
   if (betMapPriceValue[bet] === current) {

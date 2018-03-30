@@ -18,8 +18,11 @@ function createWindow () {
     console.log(arg);
     fs.appendFileSync('log.txt', arg + '\r\n');
   })
-  ipcMain.on('price-log', (event, arg) => {
-    fs.appendFileSync(priceLogName, arg + '\r\n');
+  ipcMain.on('price-log', (event, {
+    name,
+    prices
+  }) => {
+      fs.appendFile(`prices/${name}`, '\r\n' + prices.join('\r\n'));
   })
 
   ipcMain.on('set-price-log', (event, arg) => {
