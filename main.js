@@ -3,7 +3,7 @@ const {ipcRenderer} = require('electron');
 
 iframe.addEventListener('load', () => {
   setInterval(printPrice, 25);
-  relodAfter(4 * 60 * 60 * 1000);
+  relodAfter(2 * 60 * 60 * 1000);
   // stopWorkAfter(2 * 60 * 60 * 1000);
   // ipcRenderer.send('clear-log');
 
@@ -44,16 +44,16 @@ async function printPrice () {
     return;
   }
   prices.push(createTrainValue(price));
-  pricesForLog.push(`${price} ${incomeValue}`);
+  // pricesForLog.push(`${price} ${incomeValue}`);
 
 
-  if (pricesForLog.length > 5000) {
-    ipcRenderer.send('price-log', {
-      name: logPriceName,
-      prices: pricesForLog,
-    });
-    pricesForLog = [];
-  }
+  // if (pricesForLog.length > 5000) {
+  //   ipcRenderer.send('price-log', {
+  //     name: logPriceName,
+  //     prices: pricesForLog,
+  //   });
+  //   pricesForLog = [];
+  // }
 
   const betType = analize(prices);
   if (prices.length > 60 * 40 * countMinutesAnalize) {
@@ -131,7 +131,7 @@ let betMapPriceValue = {
   'limit': 5,
 }
 async function setBet (bet = 1) {
-  return;
+  // return;
   let current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
 
   if (betMapPriceValue[bet] === current) {
@@ -208,10 +208,9 @@ function createTrainValue (val, date) {
 
 function analize (arr) {
   if (parseInt(iframe.contentDocument.querySelector('.income__value').innerText) < 70) {
-    console.log(iframe.contentDocument.querySelector('.income__value'));
+    // console.log(iframe.contentDocument.querySelector('.income__value'));
     return null;
   }
-  arr = arr.map(v => v * 100000);
   let countMore = 0;
   let countLess = 0;
 
