@@ -47,7 +47,7 @@ async function printPrice () {
   pricesForLog.push(`${price} ${incomeValue}`);
 
 
-  if (pricesForLog.length > 200) {
+  if (pricesForLog.length > 5000) {
     ipcRenderer.send('price-log', {
       name: logPriceName,
       prices: pricesForLog,
