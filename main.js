@@ -33,6 +33,14 @@ iframe.addEventListener('load', () => {
 });
 
 async function printPrice () {
+  let tab = getFromFrame('#pm-v1-EURUSD');
+  if (!tab) {
+    prices = [];
+    return;
+  } else if (!tab.classList.contains('pair-tab_selected')) {
+      tab.click();
+  }
+
   if (forceRelod && (bet === 1 || bet === 'limit')) {
     window.location.reload();
     return;
@@ -69,7 +77,7 @@ async function printPrice () {
   let price = parseFloat(priceText.innerHTML);
   let incomeValue = parseInt(getFromFrame('.income__value').innerText);
 
-  if (myPRISEE < 6000) {
+  if (myPRISEE < 5500) {
     return;
   }
 
