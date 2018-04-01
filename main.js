@@ -176,7 +176,6 @@ function downAmount () {
   });
 }
 
-
 async function setTime (time = TIME_BET) {
   let curTime = parseInt(getFromFrame('.timeinput__input.timeinput__input_minutes')
     .value);
