@@ -6,6 +6,7 @@ let prices = [];
 let inProgress = false;
 let bet = 1;
 let MIN_BET = 5;
+let TIME_BET = 5;
 
 let oneSecondInMilliseconds = 1000;
 let oneMinInMilliseconds = 60 * oneSecondInMilliseconds;
@@ -32,10 +33,14 @@ iframe.addEventListener('load', () => {
 });
 
 async function printPrice () {
+  if (forceRelod && (bet === 1 || bet === 'limit')) {
+    window.location.reload();
+    return;
+  }
+
   let currentDate = new Date();
   let day = currentDate.getDay();
   let hours = currentDate.getHours();
-
 
   if (bet === 1 || bet === 'limit') {
     if ((day === 1 && hours <= 5) ||
@@ -47,9 +52,16 @@ async function printPrice () {
   }
 
   let priceText = getFromFrame('.pin_text');
+  let curTime = getFromFrame('.timeinput__input.timeinput__input_minutes');
 
-  if (!priceText) {
+  if (!priceText || !curTime) {
     prices = [];
+    return;
+  }
+
+  if (parseInt(curTime.value) !== TIME_BET) {
+      prices = [];
+    await setTime(TIME_BET);
     return;
   }
 
@@ -106,10 +118,6 @@ async function printPrice () {
 
         await setBet(bet);
 
-        if (forceRelod && (bet === 1 || bet === 'limit')) {
-          window.location.reload();
-          return;
-        }
         inProgress = false;
     }, (oneMinInMilliseconds * countMinutesBet) + oneSecondInMilliseconds * 3);
   }
@@ -161,6 +169,41 @@ function downAmount () {
       iframe
         .contentDocument
         .querySelector('[data-test="deal-select-amount-down"]')
+        .click();
+    window.requestAnimationFrame(() => {
+      res();
+    });
+  });
+}
+
+
+async function setTime (time = TIME_BET) {
+  let curTime = parseInt(getFromFrame('.timeinput__input.timeinput__input_minutes')
+    .value);
+  if (curTime < time) {
+    await upTime()
+  } else {
+    await downTime()
+  }
+}
+
+function upTime () {
+  return new Promise((res) => {
+      iframe
+        .contentDocument
+        .querySelector('[data-test="deal-select-duration-up"]')
+        .click();
+    window.requestAnimationFrame(() => {
+      res();
+    });
+  });
+}
+
+function downTime () {
+  return new Promise((res) => {
+      iframe
+        .contentDocument
+        .querySelector('[data-test="deal-select-duration-down"]')
         .click();
     window.requestAnimationFrame(() => {
       res();
