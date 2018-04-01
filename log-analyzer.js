@@ -59,7 +59,7 @@ function analize (line) {
   //console.log(R);
 
 }
-const minBet = 5;
+const minBet = 35;
 
 // var pricesA = {
 //   0: minBet * rate,
@@ -89,6 +89,7 @@ var pricesA = {
   10: 1*minBet * rate - 86*minBet,
 };
 
+
 // var pricesA = {
 //   0: minBet * rate,
 //   1: 2*minBet * rate - minBet,
@@ -105,7 +106,17 @@ var pricesA = {
 
 
 
+
+let howMutchIHaveToSet = {
+  0: minBet,
+  1: 2*minBet,
+  2: 6*minBet,
+  3: 18*minBet,
+  4: 54*minBet,
+}
 console.log(pricesA);
+// console.log(howMutchIHaveToSet);
+
 
 function printResult () {
   // console.log(win, lose, lresult);
@@ -122,7 +133,7 @@ function printResult () {
   // }
   // console.log(info);
   // }
-  printPrices(pricesA);
+  // printPrices(pricesA);
 
     // console.log(R);
     const t = myBETS.reverse();
@@ -142,16 +153,5 @@ function printPrices(prices) {
       return res + info[val] * prices[val];
     }, 0);
 
-  let resultWin = Object.keys(infoWin)
-    .map(v => {
-      return parseInt(v)
-    })
-    .reduce((res, val) => {
-      // console.log(val, infoWin[val], prices[val], infoWin[val] * prices[val]);
-      if (!prices[val]) return res;
-      return res - infoWin[val] * prices[val];
-    }, 0);
-
-
-    console.log(result, resultWin);
+    console.log(result);
 }

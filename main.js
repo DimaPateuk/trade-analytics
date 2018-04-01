@@ -1,28 +1,23 @@
-const iframe = document.querySelector('.iframe');
-const {ipcRenderer} = require('electron');
-
-iframe.addEventListener('load', () => {
-  setInterval(printPrice, 25);
-  relodAfter(2 * 60 * 60 * 1000);
-  // stopWorkAfter(2 * 60 * 60 * 1000);
-  // ipcRenderer.send('clear-log');
-
-});
+let iframe = document.querySelector('.iframe');
+let {ipcRenderer} = require('electron');
 
 let prices = [];
-let logPriceName = `log-price-${(new Date()).toString().split(':').join('-')}`;
-let pricesForLog = [];
 
 let inProgress = false;
-let stopWork = false;
 let bet = 1;
+let MIN_BET = 5;
+
+let oneSecondInMilliseconds = 1000;
+let oneMinInMilliseconds = 60 * oneSecondInMilliseconds;
+let tic = 25;
+let ticInOneMin = oneMinInMilliseconds / tic;
 
 let countMinutesBet = 5;
 let countMinutesAnalize = 5;
 
 let forceRelod = false;
 
-const betLoseMap = {
+let betLoseMap = {
   1: 2,
   2: 6,
   6: 18,
@@ -31,38 +26,51 @@ const betLoseMap = {
   'limit': 'limit',
 }
 
-async function printPrice () {
-  const myPRISEE = parseFloat(iframe.contentDocument.querySelector('.sum.header-row__balance-sum').innerText.split(' ').join(''));
-  const price = parseFloat(iframe.contentDocument.querySelector('.pin_text').innerHTML);
-  const incomeValue = parseInt(iframe.contentDocument.querySelector('.income__value').innerText);
+iframe.addEventListener('load', () => {
+  setInterval(printPrice, tic);
+  relodAfter(2 * 60 * oneMinInMilliseconds);
+});
 
-  // console.log(myPRISEE);
+async function printPrice () {
+  let currentDate = new Date();
+  let day = currentDate.getDay();
+  let hours = currentDate.getHours();
+
+
+  if (bet === 1 || bet === 'limit') {
+    if ((day === 1 && hours <= 5) ||
+       (day === 5 && hours >= 9) ||
+       (day === 6 || day === 0)) {
+      prices = [];
+      return;
+    }
+  }
+
+  let priceText = getFromFrame('.pin_text');
+
+  if (!priceText) {
+    prices = [];
+    return;
+  }
+
+  let myPRISEE = parseFloat(getFromFrame('.sum.header-row__balance-sum').innerText.split(' ').join(''));
+  let price = parseFloat(priceText.innerHTML);
+  let incomeValue = parseInt(getFromFrame('.income__value').innerText);
+
   if (myPRISEE < 6000) {
     return;
   }
-  if (stopWork) {
-    return;
-  }
+
   prices.push(createTrainValue(price));
-  // pricesForLog.push(`${price} ${incomeValue}`);
-
-
-  // if (pricesForLog.length > 5000) {
-  //   ipcRenderer.send('price-log', {
-  //     name: logPriceName,
-  //     prices: pricesForLog,
-  //   });
-  //   pricesForLog = [];
-  // }
-
-  const betType = analize(prices);
-  if (prices.length > 60 * 40 * countMinutesAnalize) {
+  if (prices.length > ticInOneMin * countMinutesAnalize) {
     prices = prices.slice(1);
-    const priceStartMy = prices[prices.length - 1];
 
     if (inProgress) {
       return;
     }
+
+    let betType = analize(prices, incomeValue);
+    let priceStartMy = prices[prices.length - 1];
 
     if (!betType) return;
 
@@ -72,125 +80,100 @@ async function printPrice () {
       down();
     }
     inProgress = true;
+
     setTimeout(() => {
-
-      const p = parseFloat(iframe.contentDocument.querySelector('.user-deals-table.user-deals-table_turbo .user-deals-table__body').firstChild.children[3].innerText.trim());
+      let p = parseFloat(getFromFrame('.user-deals-table.user-deals-table_turbo .user-deals-table__body').firstChild.children[3].innerText.trim());
       ipcRenderer.send('set-price-log', `${priceStartMy} ${p} ${priceStartMy === p} ${priceStartMy - p}`);
-
-      console.log('beeeeet!!!', betType, priceStartMy, p, priceStartMy === p);
     }, 5000);
-    setTimeout(async () => {
-        const betInfo = iframe.contentDocument.querySelector('.user-deals-table__body').firstChild.children;
-        const time = betInfo[2].innerText.trim().split('\n').join(" - ");
-        const priceStart = `${betInfo[3].innerText.trim()}|${priceStartMy}`;
-        const priceEnd = `${betInfo[4].innerText.trim()}|${prices[prices.length - 30]}`;
-        const result = betInfo[8].innerText.trim();
 
-        const betInPlatform = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
+    setTimeout(async () => {
+        let betInfo = getFromFrame('.user-deals-table__body').firstChild.children;
+        let time = betInfo[2].innerText.trim().split('\n').join(" - ");
+        let priceStart = `${betInfo[3].innerText.trim()}|${priceStartMy}`;
+        let priceEnd = `${betInfo[4].innerText.trim()}|${prices[prices.length - 30]}`;
+        let result = betInfo[8].innerText.trim();
+
+        let betInPlatform = parseInt(getFromFrame('.input-currency input').value);
 
         addRow(betType, time, `${priceStart}|${priceEnd}`, result, betInPlatform, bet);
         if (result.indexOf('Прогноз не оправдался') !== -1) {
           bet = betLoseMap[bet];
-
-          console.log('Прогноз не оправдался, следующая ставка', bet);
         }
 
         if (result.indexOf('Прогноз оправдался') !== -1) {
-
-          console.log('Прогноз оправдался', bet, 'следующаяставка 1');
           bet = 1;
-          if (forceRelod) {
-            await setBet(bet);
-            window.location.reload();
-            return;
-          }
         }
+
         await setBet(bet);
+
+        if (forceRelod && (bet === 1 || bet === 'limit')) {
+          window.location.reload();
+          return;
+        }
         inProgress = false;
-    }, (60000 * countMinutesBet) + 3000);
+    }, (oneMinInMilliseconds * countMinutesBet) + oneSecondInMilliseconds * 3);
   }
 }
 
-function stopWorkAfter(time) {
-  setTimeout(() => {
-    stopWork = true;
-  }, time)
-}
 function relodAfter(time) {
   setTimeout(() => {
     forceRelod = true;
   }, time)
 }
 
-let betMapPriceValue = {
-  1: 5,
-  2: 10,
-  6: 30,
-  18: 90,
-  54: 270,
-  'limit': 5,
-}
 async function setBet (bet = 1) {
   // return;
-  let current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
+  let current = parseInt(getFromFrame('.input-currency input').value);
+  let myBet = bet * MIN_BET || MIN_BET;
 
-  if (betMapPriceValue[bet] === current) {
+  if (myBet === current) {
     return;
   }
 
-  const count = Math.abs(betMapPriceValue[bet] - current) / 5;
-  if (betMapPriceValue[bet] > current) {
-    while (betMapPriceValue[bet] !== current) {
+  let count = Math.abs(myBet - current) / MIN_BET;
+  if (myBet > current) {
+    while (myBet !== current) {
       await upAmount();
-      current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
+      current = parseInt(getFromFrame('.input-currency input').value);
     }
   } else {
-    while (betMapPriceValue[bet] !== current) {
+    while (myBet !== current) {
       await downAmount();
-      current = parseInt(iframe.contentDocument.querySelector('.input-currency input').value);
+      current = parseInt(getFromFrame('.input-currency input').value);
     }
   }
 }
-window.f = setBet;
 
 function upAmount () {
   return new Promise((res) => {
-    window.requestAnimationFrame(() => {
       iframe
         .contentDocument
         .querySelector('[data-test="deal-select-amount-up"]')
         .click();
-      setTimeout(() => res(), 50);
+    window.requestAnimationFrame(() => {
+      res();
     });
   });
 }
 
 function downAmount () {
   return new Promise((res) => {
-    window.requestAnimationFrame(() => {
       iframe
         .contentDocument
         .querySelector('[data-test="deal-select-amount-down"]')
         .click();
-      setTimeout(() => res(), 50);
-    });
-  });
-}
-
-function awaitTime (time = 100) {
-  return new Promise((res) => {
     window.requestAnimationFrame(() => {
-      setTimeout(() => res(), time);
+      res();
     });
   });
 }
 
 function up (bet = 1) {
-  iframe.contentDocument.querySelector('[data-test="deal-button-up"]').click()
+  getFromFrame('[data-test="deal-button-up"]').click()
 }
 
 function down (bet = 1) {
-  iframe.contentDocument.querySelector('[data-test="deal-button-down"]').click()
+  getFromFrame('[data-test="deal-button-down"]').click()
 }
 
 function addRow (betType, time, priceStart, priceEnd, res, bet) {
@@ -199,16 +182,14 @@ function addRow (betType, time, priceStart, priceEnd, res, bet) {
 
 function createTrainValue (val, date) {
   return val;
-  // return {
-  //   input: [date || +new Date],
-  //   output: [val],
-  // }
 }
 
+function getFromFrame (selector) {
+  return iframe.contentDocument.querySelector(selector);
+}
 
-function analize (arr) {
-  if (parseInt(iframe.contentDocument.querySelector('.income__value').innerText) < 70) {
-    // console.log(iframe.contentDocument.querySelector('.income__value'));
+function analize (arr, incomeValue) {
+  if (incomeValue < 70) {
     return null;
   }
   let countMore = 0;
@@ -221,8 +202,8 @@ function analize (arr) {
   	}
   }
 
-  const unstableCoefficient = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
-  const isUnstable = unstableCoefficient > 0.3;
+  let unstableCoefficient = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
+  let isUnstable = unstableCoefficient > 0.3;
   // console.log(unstableCoefficient, countMore, countLess, arr.length);
 
   if (isUnstable) return null;

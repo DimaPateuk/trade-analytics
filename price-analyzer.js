@@ -9,10 +9,9 @@ function processFile(inputFile, onLine, onClose = () => {}) {
 
     rl.on('close', onClose);
 }
-processFile('12', read, analize);
+processFile('prices/log-price-Sat Mar 31 2018 06-05-29 GMT+0300 (Belarus Standard Time)', read, analize);
 
-const prices = [];
-const incoming = [];
+let prices = [];
 function read (line) {
   prices.push(line);
 
@@ -23,45 +22,46 @@ const step = 63 * 40 * 5;
 function analize () {
   let arr = [];
   let wins = 0;
-  console.log(prices.length, prices.length / step);
-  for (var i = 0; i < prices.length / (step); i++) {
+  // prices = prices.slice(0, 100000);
+  for (var i = 0; i < prices.length - 2 * step - 3 * 40 - 1; i++) {
   // for (var i = 0; i < 10; i++) {
+    // console.log(i);
 
-    arr = prices.slice(i * step, i * step + step);
-    arr = arr.splice(0, step - 3 * 40);
-    // if (arr.length <= step) continue;
-    // console.log(arr.length);
-
-
-
+    arr = prices.slice(i, i + step - 3 * 40);
+    var [price, inc] = arr[arr.length - 1].split(' ');
+    
+    // console.log(inc);
+    if (parseFloat(inc) >= 70) {
+      continue;
+    }
     var {bet, unstableCoefficient} = analizePrices(arr.map(parseFloat));
-    // console.log(unstableCoefficient);
-    i++;
-    arr = prices.slice(i * step, i * step + step);
-    arr = arr.splice(0, step - 3 * 40);
 
-    var [price, inc] = arr[0].split(' ');
-    console.log(price);
-    // if (bet && inc >= 70) {
+    // console.log(unstableCoefficient, inc);
+
     if (bet) {
+    // if (bet) {
 
+      i += step;
+      arr = prices.slice(i + step - 3 * 40, i + 2 * step - 3 * 40);
+      arr = arr.splice(0, step - 3 * 40);
       let result;
+      let price0 = parseFloat(arr[0].split(' ')[0]);
+      let price1 = parseFloat(arr[arr.length - 1].split(' ')[0]);
 
       if (bet === 'up') {
-        result = parseFloat(arr[0]) < parseFloat(arr[arr.length - 1])
+        result = price0 < price1
           ? 1
           : -1;
       } else {
-        result = parseFloat(arr[0]) > parseFloat(arr[arr.length - 1])
+        result = price0 > price1
           ? 1
           : -1;
       }
 
       wins += result;
 
-      console.log(result, bet, unstableCoefficient, i, parseFloat(arr[0]) - parseFloat(arr[arr.length - 1]));
-      // console.log(result);
-      // console.log(parseFloat(arr[0]));
+      console.log('remove', result, bet, unstableCoefficient, i, price0 - price1);
+      console.log(result);
 
       // console.log(
       //   result === -1
