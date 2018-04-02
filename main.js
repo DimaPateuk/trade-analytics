@@ -1,3 +1,4 @@
+let reject = require('lodash.reject');
 let iframe = document.querySelector('.iframe');
 let {ipcRenderer} = require('electron');
 
@@ -28,25 +29,28 @@ let betLoseMap = {
 }
 
 iframe.addEventListener('load', () => {
-  setInterval(printPrice, tic);
-  relodAfter(2 * 60 * oneMinInMilliseconds);
+  setTimeout(() => {
+    setInterval(printPrice, tic);
+    relodAfter(2 * 60 * oneMinInMilliseconds);
+  }, 10 * oneSecondInMilliseconds)
 });
 
 async function printPrice () {
+  let currentDate = new Date();
   let tab = getFromFrame('#pm-v1-EURUSD');
   if (!tab) {
     prices = [];
     return;
   } else if (!tab.classList.contains('pair-tab_selected')) {
+      prices = [];
+      return;
       tab.click();
   }
-
   if (forceRelod && (bet === 1 || bet === 'limit')) {
     window.location.reload();
     return;
   }
 
-  let currentDate = new Date();
   let day = currentDate.getDay();
   let hours = currentDate.getHours();
 
@@ -62,25 +66,19 @@ async function printPrice () {
   let priceText = getFromFrame('.pin_text');
   let curTime = getFromFrame('.timeinput__input.timeinput__input_minutes');
 
-  if (!priceText || !curTime) {
+  if (!priceText) {
     prices = [];
     return;
   }
 
-  if (parseInt(curTime.value) !== TIME_BET) {
-      prices = [];
-    await setTime(TIME_BET);
-    return;
-  }
-
-  let myPRISEE = parseFloat(getFromFrame('.sum.header-row__balance-sum').innerText.split(' ').join(''));
+  let myPRISEE = parseFloat(getFromFrame('.sum.header-row__balance-sum').innerText.replace(' ', ''));
   let price = parseFloat(priceText.innerHTML);
   let incomeValue = parseInt(getFromFrame('.income__value').innerText);
 
-  if (myPRISEE < 5500) {
+  if (myPRISEE < 5000) {
     return;
   }
-
+  let betType = analize(prices, incomeValue);
   prices.push(createTrainValue(price));
   if (prices.length > ticInOneMin * countMinutesAnalize) {
     prices = prices.slice(1);
@@ -89,7 +87,6 @@ async function printPrice () {
       return;
     }
 
-    let betType = analize(prices, incomeValue);
     let priceStartMy = prices[prices.length - 1];
 
     if (!betType) return;
@@ -242,6 +239,10 @@ function analize (arr, incomeValue) {
   if (incomeValue < 70) {
     return null;
   }
+
+  arr = reject(arr, function (v, i) {
+      return i > 0 && arr[i - 1] === v;
+  });
   let countMore = 0;
   let countLess = 0;
 
