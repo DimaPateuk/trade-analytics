@@ -28,12 +28,17 @@ let betLoseMap = {
   'limit': 'limit',
 }
 
+let intervalIndeficator;
+
 iframe.addEventListener('load', () => {
   setTimeout(() => {
-    setInterval(printPrice, tic);
+    intervalIndeficator = setInterval(printPrice, tic);
     relodAfter(2 * 60 * oneMinInMilliseconds);
   }, 10 * oneSecondInMilliseconds)
 });
+
+let w = 0;
+let l = 0;
 
 async function printPrice () {
   let currentDate = new Date();
@@ -47,6 +52,7 @@ async function printPrice () {
       tab.click();
   }
   if (forceRelod && (bet === 1 || bet === 'limit')) {
+    clearInterval(intervalIndeficator);
     window.location.reload();
     return;
   }
@@ -55,7 +61,7 @@ async function printPrice () {
   let hours = currentDate.getHours();
 
   if (bet === 1 || bet === 'limit') {
-    if ((day === 1 && hours <= 5) ||
+    if ((day === 1 && hours <= 10) ||
        (day === 5 && hours >= 9) ||
        (day === 6 || day === 0)) {
       prices = [];
@@ -75,7 +81,7 @@ async function printPrice () {
   let price = parseFloat(priceText.innerHTML);
   let incomeValue = parseInt(getFromFrame('.income__value').innerText);
 
-  if (myPRISEE < 5000) {
+  if (myPRISEE < 4700) {
     return;
   }
   let betType = analize(prices, incomeValue);
@@ -115,10 +121,14 @@ async function printPrice () {
         addRow(betType, time, `${priceStart}|${priceEnd}`, result, betInPlatform, bet);
         if (result.indexOf('Прогноз не оправдался') !== -1) {
           bet = betLoseMap[bet];
+          l++;
+          w = 0;
         }
 
         if (result.indexOf('Прогноз оправдался') !== -1) {
           bet = 1;
+          w++;
+          l = 0;
         }
 
         await setBet(bet);
@@ -159,25 +169,32 @@ async function setBet (bet = 1) {
 
 function upAmount () {
   return new Promise((res) => {
+    window.requestAnimationFrame(() => {
       iframe
         .contentDocument
         .querySelector('[data-test="deal-select-amount-up"]')
         .click();
-    window.requestAnimationFrame(() => {
-      res();
+
+        window.requestAnimationFrame(() => {
+          res();
+        });
     });
+
   });
 }
 
 function downAmount () {
   return new Promise((res) => {
-      iframe
-        .contentDocument
-        .querySelector('[data-test="deal-select-amount-down"]')
-        .click();
-    window.requestAnimationFrame(() => {
-      res();
-    });
+      window.requestAnimationFrame(() => {
+        iframe
+          .contentDocument
+          .querySelector('[data-test="deal-select-amount-down"]')
+          .click();
+
+          window.requestAnimationFrame(() => {
+            res();
+          });
+      });
   });
 }
 
@@ -235,6 +252,7 @@ function getFromFrame (selector) {
   return iframe.contentDocument.querySelector(selector);
 }
 
+
 function analize (arr, incomeValue) {
   if (incomeValue < 70) {
     return null;
@@ -259,8 +277,16 @@ function analize (arr, incomeValue) {
 
   if (isUnstable) return null;
 
-  return arr[0] > arr[arr.length - 1]
+  let result = arr[0] > arr[arr.length - 1]
     ? 'down'
     : 'up';
+
+  if (l && l%2 === 0) {
+    return result === 'up'
+      ? 'down'
+      : 'up';
+  }
+
+  return result;
 
 }

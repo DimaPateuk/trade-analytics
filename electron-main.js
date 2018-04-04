@@ -16,7 +16,7 @@ function createWindow () {
   }))
   ipcMain.on('asynchronous-reply', (event, arg) => {
     console.log(arg);
-    fs.appendFileSync('log.txt', arg + '\r\n');
+    fs.appendFile('log.txt', arg + '\r\n');
   })
   ipcMain.on('price-log', (event, {
     name,
@@ -26,11 +26,11 @@ function createWindow () {
   })
 
   ipcMain.on('set-price-log', (event, arg) => {
-    fs.appendFileSync('set-price', arg + '\r\n');
+    fs.appendFile('set-price', arg + '\r\n');
   })
 
   ipcMain.on('clear-log', (event, arg) => {
-      fs.appendFileSync('log.txt', '1');
+      fs.appendFile('log.txt', '1');
       fs.unlinkSync('log.txt');
 
   })

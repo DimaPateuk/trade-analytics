@@ -32,16 +32,29 @@ function analize (line) {
     // console.log('-1');
     R += parseInt(line.split('|')[8]) * -1;
     // console.log(line.split("|")[2]);
+
+
+    // if (l && l%2 === 0) {
+    //     // console.log('1');
+    //     win++;
+    //     w++;
+    //       R += 1;
+    //     info[l] = info[l] ? info[l] + 1 : 1;
+    //     myBETS.push(brtMy * rate);
+    //     l = 0;
+    // } else {
+    //   // console.log('-1');
+    //   lose++;
+    //   l++;
+    //   infoWin[w] = infoWin[w] ? infoWin[w] + 1 : 1;
+    //   w = 0;
+    // }
+
+
     lose++;
     l++;
     infoWin[w] = infoWin[w] ? infoWin[w] + 1 : 1;
     w = 0;
-    if (l%3 === 0) {
-      moreThenTreeFail++;
-    }
-    if (lresult < l) {
-      lresult = l;
-    }
   }
 
   if (line.indexOf('Прогноз оправдался') !== -1) {
