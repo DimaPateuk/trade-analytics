@@ -1,1 +1,3 @@
-document.querySelector('.rectCover.rectCover__chart').nearestViewportElement.children[0].children[5].children[1].__data__.map(v => v.close).join('\n') - prices
+`module.exports = [
+${document.querySelector('.rectCover.rectCover__chart').nearestViewportElement.children[0].children[5].children[1].__data__.map(v => `{v:${v.close}, d:${v.Date}},`).join('\n')}
+];`

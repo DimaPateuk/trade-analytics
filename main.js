@@ -31,38 +31,37 @@ let betLoseMap = {
 let intervalIndeficator;
 
 iframe.addEventListener('load', () => {
-  setTimeout(() => {
+  let idInterval = setInterval(async () => {
+    let input = getFromFrame('.input-currency input');
+    let tab = getFromFrame('#pm-v1-EURUSD');
+    if (!input || !tab) return;
+    clearInterval(idInterval);
+    await setBet(bet);
+    if (!tab.classList.contains('pair-tab_selected')) {
+        tab.click();
+    }
     intervalIndeficator = setInterval(printPrice, tic);
     relodAfter(2 * 60 * oneMinInMilliseconds);
-  }, 10 * oneSecondInMilliseconds)
+    console.log('straaaaaaaaaart!');
+  }, 50);
 });
 
 let w = 0;
 let l = 0;
 
 async function printPrice () {
-  let currentDate = new Date();
-  let tab = getFromFrame('#pm-v1-EURUSD');
-  if (!tab) {
-    prices = [];
-    return;
-  } else if (!tab.classList.contains('pair-tab_selected')) {
-      prices = [];
-      return;
-      tab.click();
-  }
   if (forceRelod && (bet === 1 || bet === 'limit')) {
     clearInterval(intervalIndeficator);
     window.location.reload();
     return;
   }
-
+  let currentDate = new Date();
   let day = currentDate.getDay();
   let hours = currentDate.getHours();
 
   if (bet === 1 || bet === 'limit') {
-    if ((day === 1 && hours <= 10) ||
-       (day === 5 && hours >= 9) ||
+    if ((day === 1 && hours <= 3) ||
+       (day === 5 && hours >= 22) ||
        (day === 6 || day === 0)) {
       prices = [];
       return;
@@ -72,8 +71,14 @@ async function printPrice () {
   let priceText = getFromFrame('.pin_text');
   let curTime = getFromFrame('.timeinput__input.timeinput__input_minutes');
 
-  if (!priceText) {
+  if (!priceText && !curTime) {
     prices = [];
+    return;
+  }
+
+  if (parseInt(curTime.value) !== TIME_BET) {
+    prices = [];
+    await setTime(TIME_BET);
     return;
   }
 
@@ -81,7 +86,7 @@ async function printPrice () {
   let price = parseFloat(priceText.innerHTML);
   let incomeValue = parseInt(getFromFrame('.income__value').innerText);
 
-  if (myPRISEE < 4700) {
+  if (myPRISEE < 4500) {
     return;
   }
   let betType = analize(prices, incomeValue);
@@ -117,8 +122,9 @@ async function printPrice () {
         let result = betInfo[8].innerText.trim();
 
         let betInPlatform = parseInt(getFromFrame('.input-currency input').value);
-
+        let isLoose = false;
         addRow(betType, time, `${priceStart}|${priceEnd}`, result, betInPlatform, bet);
+
         if (result.indexOf('Прогноз не оправдался') !== -1) {
           bet = betLoseMap[bet];
           l++;
@@ -129,11 +135,12 @@ async function printPrice () {
           bet = 1;
           w++;
           l = 0;
+
         }
 
         await setBet(bet);
-
         inProgress = false;
+
     }, (oneMinInMilliseconds * countMinutesBet) + oneSecondInMilliseconds * 3);
   }
 }
@@ -146,7 +153,7 @@ function relodAfter(time) {
 
 async function setBet (bet = 1) {
   // return;
-  let current = parseInt(getFromFrame('.input-currency input').value);
+  let current = parseInt(getFromFrame('.input-currency input').value.replace(' ', ''));
   let myBet = bet * MIN_BET || MIN_BET;
 
   if (myBet === current) {
@@ -167,12 +174,12 @@ async function setBet (bet = 1) {
   }
 }
 
-function upAmount () {
+function changeAmount (selector) {
   return new Promise((res) => {
     window.requestAnimationFrame(() => {
       iframe
         .contentDocument
-        .querySelector('[data-test="deal-select-amount-up"]')
+        .querySelector(selector)
         .click();
 
         window.requestAnimationFrame(() => {
@@ -183,19 +190,12 @@ function upAmount () {
   });
 }
 
-function downAmount () {
-  return new Promise((res) => {
-      window.requestAnimationFrame(() => {
-        iframe
-          .contentDocument
-          .querySelector('[data-test="deal-select-amount-down"]')
-          .click();
+function upAmount () {
+  return changeAmount('[data-test="deal-select-amount-up"]');
+}
 
-          window.requestAnimationFrame(() => {
-            res();
-          });
-      });
-  });
+function downAmount () {
+  return changeAmount('[data-test="deal-select-amount-down"]');
 }
 
 async function setTime (time = TIME_BET) {
@@ -253,14 +253,7 @@ function getFromFrame (selector) {
 }
 
 
-function analize (arr, incomeValue) {
-  if (incomeValue < 70) {
-    return null;
-  }
-
-  arr = reject(arr, function (v, i) {
-      return i > 0 && arr[i - 1] === v;
-  });
+function analize2 (arr) {
   let countMore = 0;
   let countLess = 0;
 
@@ -272,21 +265,57 @@ function analize (arr, incomeValue) {
   }
 
   let unstableCoefficient = (Math.min(countMore, countLess) || 1) / Math.max(countMore, countLess);
-  let isUnstable = unstableCoefficient > 0.3;
-  // console.log(unstableCoefficient, countMore, countLess, arr.length);
 
-  if (isUnstable) return null;
+  let tMore = 0;
+  let tLess = 0;
 
-  let result = arr[0] > arr[arr.length - 1]
-    ? 'down'
-    : 'up';
-
-  if (l && l%2 === 0) {
-    return result === 'up'
-      ? 'down'
-      : 'up';
+  let twentyPersentPoints = Math.floor(arr.length * 0.2);
+  for (var i = 0; i < twentyPersentPoints; i++) {
+    for (var j = arr.length - twentyPersentPoints; j < arr.length; j++) {
+      if (arr[i] > arr[j]) tMore++;
+      if (arr[i] < arr[j]) tLess++;
+    }
   }
 
-  return result;
+  let type;
+  if (tMore && tLess) type = null;
+  else if (tMore) type = 'down';
+  else if (tLess) type = 'up';
 
+  return { unstableCoefficient, type };
+
+}
+
+function analize (arr, incomeValue = 70) {
+  if (incomeValue < 70) {
+    return null;
+  }
+  let length = arr.length;
+  arr = reject(arr, function (v, i) {
+      return i > 0 && arr[i - 1] === v;
+  });
+  let count = 3;
+  let part = Math.floor(arr.length / count);
+  let cofs = [];
+  var i = 0;
+  for (i = 0; i < count - 1; i++) {
+    cofs.push(analize2(arr.slice(i*part, (i+1)* part)));
+  }
+  cofs.push(analize2(arr.slice(i*part, arr.length)));
+
+  let averageCof = cofs.reduce((res,el) => res + el.unstableCoefficient, 0) / count;
+  // let isUnstable = cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
+  let isUnstable = averageCof > 0.3;//cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
+
+  let up = cofs.filter(e => e.type === 'up').length === cofs.length;
+  let down = cofs.filter(e => e.type === 'down').length === cofs.length;
+
+  // console.log(averageCof, length, arr.length, up && 'up', down && 'down');
+
+  if (isUnstable) return null;
+  if (!up && !down) return null;
+
+  return up
+    ? 'up'
+    : 'down';
 }
