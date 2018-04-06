@@ -1,4 +1,4 @@
-// const { scrollLeft } = require('./robotControllet');
+const { scrollLeft } = require('./robotControllet');
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const url = require('url')
@@ -31,10 +31,45 @@ function createWindow () {
     setInterval(scrollLeft, 10000);
   });
 
+  var prependFile = require('prepend-file');
+   
+  prependFile('message.txt', 'data to prepend', function (err) {
+      if (err) {
+          // Error 
+      }
+   
+      // Success 
+      console.log('The "data to prepend" was prepended to file!');
+  });
+  var last;
   ipcMain.on('scrollLeft', (event, arg) => {
-    console.log(arg.data);
-    // scrollLeft();
-    // ipcMain.on('scrollLeftDone');
+    scrollLeft();
+    var result;
+    if (!last) {
+      result = arg
+        .data
+        .map(e => `${e.v} ${e.d}`)
+        .join('\r\n');
+
+    } else {
+      result = arg
+        .data
+        .slice(0, arg.data.findIndex((e) => e.d === last.d))
+        .map(e => `${e.v} ${e.d}`)
+        .join('\r\n');
+    }
+
+    last = arg.data[0];
+    prependFile('message.txt', result + '\r\n', function (err) {
+          if (err) {
+              console.log(err);
+              return;
+          }
+
+          setTimeout(() => {
+            win.webContents.send('scrollLeftDone');
+          }, 3000);
+      });
   });
 }
 

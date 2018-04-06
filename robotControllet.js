@@ -1,6 +1,6 @@
 var robot = require("robotjs");
 
-function scrollLeft (x = 300,y = 500) {
+function scrollLeft (x = 150,y = 400) {
 	robot.moveMouse(x, y);
 
 	robot.mouseToggle("down");

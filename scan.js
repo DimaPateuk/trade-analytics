@@ -16,19 +16,24 @@ function getElementOffset (element) {
 let {ipcRenderer} = require('electron');
 let iframe = document.querySelector('.iframe');
 
+function getFromFrame (selector) {
+  return iframe.contentDocument.querySelector(selector);
+}
 function getData() {
-	let data = iframe
-		.querySelector('.rectCover.rectCover__chart')
+	let data = getFromFrame('.rectCover.rectCover__chart')
 		.nearestViewportElement
 		.children[0]
 		.children[5]
 		.children[1]
 		.__data__
-		.map(v => { v: v.close, d: v.Date });
+		.map(v => ({ v: v.close, d: v.Date }));
 
 	ipcRenderer.send('scrollLeft', { data });
 }
+
+ipcRenderer.on('scrollLeftDone', getData);
 
 function start () {
-	ipcRenderer.send('scrollLeft', { data });
+	setTimeout(getData, 10000);
 }
+
