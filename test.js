@@ -1,9 +1,11 @@
 let reject = require('lodash.reject');
-
-
 function analize2 (arr) {
   let countMore = 0;
   let countLess = 0;
+
+  arr = reject(arr, function (v, i) {
+      return i > 0 && arr[i - 1] === v;
+  });
 
   for (var i = 0; i < arr.length; i++) {
   	for (var j = i; j < arr.length; j++) {
@@ -34,7 +36,7 @@ function analize2 (arr) {
 
 }
 
-function analize (arr, incomeValue = 70) {
+function analize (arr, incomeValue = 70, l) {
   if (incomeValue < 70) {
     return null;
   }
@@ -42,7 +44,7 @@ function analize (arr, incomeValue = 70) {
   arr = reject(arr, function (v, i) {
       return i > 0 && arr[i - 1] === v;
   });
-  let count = 3;
+  let count = 3;//3;
   let part = Math.floor(arr.length / count);
   let cofs = [];
   var i = 0;
@@ -51,50 +53,188 @@ function analize (arr, incomeValue = 70) {
   }
   cofs.push(analize2(arr.slice(i*part, arr.length)));
 
-  let averageCof = cofs.reduce((res,el) => res + el.unstableCoefficient, 0) / count;
+  let unstableCoefficient = cofs.reduce((res,el) => res + el.unstableCoefficient, 0) / count;
   // let isUnstable = cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
-  let isUnstable = averageCof > 0.3;//cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
+  // let isUnstable = unstableCoefficient > 0.3;//cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
+  let isUnstable = cofs.every(el => el.unstableCoefficient < 0.3);
 
-  let up = cofs.filter(e => e.type === 'up').length === cofs.length;
-  let down = cofs.filter(e => e.type === 'down').length === cofs.length;
+  let up = cofs.every(e => e.type === 'up');
+  let down = cofs.every(e => e.type === 'down');
 
-  if (isUnstable) return null;
-  if (!up && !down) return null;
+  if (isUnstable) return {unstableCoefficient};
+  if (!up && !down) return {unstableCoefficient};
 
-  return up
+  let betType = up
     ? 'up'
     : 'down';
-}
 
-let arr = require('./1.js');
-
-function MAP (e) {
-  return e.v;
-}
-
-var fivemin = 5*60*1000;
-function my (arr) {
-  var start = arr[0].d;
-  var indexFiveInd = arr.findIndex((e) => e.d - start >= fivemin);
-  // console.log(indexFiveInd);
-  for (var i = 0; i < arr.length - indexFiveInd; i++) {
-    let betType = analize(arr.slice(i,i+indexFiveInd).map(MAP));
-    if (!betType) continue;
-
-    // arr.slice(i,i+indexFiveInd).forEach(e => console.log(e.v));
-
-    i += indexFiveInd + 1;
-    let arr2 = arr.slice(i,i+indexFiveInd);
-    let time = arr2[0].d;
-    let set = arr2[0].v;
-    let close = arr2[arr2.length - 1].v;
-
-    if (betType === 'up') {
-      console.log(time, betType, set < close, set, close);
-    } else {
-      console.log(time, betType, set > close, set, close);
-    }
-    console.log('-------------');
+  return {
+    unstableCoefficient,
+    betType,
   }
 }
-my(arr);
+
+function processFile(inputFile, onLine, onClose) {
+    var fs = require('fs'),
+        readline = require('readline'),
+        instream = fs.createReadStream(inputFile),
+        outstream = new (require('stream'))(),
+        rl = readline.createInterface(instream, outstream);
+
+    rl.on('line', onLine);
+
+    rl.on('close', onClose);
+}
+
+let go = (
+  analizeCount = 20,
+  betCount = 20,
+) => new Promise ((res) => {
+
+processFile('message.txt', tic, onEnd);
+
+let lineCount = 0;
+let prevTime
+let prices = [];
+let pricesStore = [];
+
+let priceStoreWin = [];
+let priceStoreLose = [];
+
+
+analizeCount = analizeCount * 60;
+betCount = betCount * 60;
+let betBeckCount = 0;
+let myBet;
+
+let w = 0;
+let l = 0;
+
+let tw = 0;
+let tl = 0;
+let info = {};
+let dayLose = {};
+let dayWin = {};
+
+function tic(line) {
+  lineCount++;
+  let [val, d] = line.split(' ').map(e => parseFloat(e, 10));
+  let currentDate = new Date(d + 3*60*60*1000);
+
+
+  prices.push(val);
+  // pricesStore.push(val);
+
+  if (prices.length === analizeCount) {
+    prices = prices.slice(1);
+  }
+
+  // if (pricesStore.length !== analizeCount * 2) return;
+  // pricesStore = pricesStore.slice(1);
+
+  if (betBeckCount) {
+    betBeckCount--;
+    if (betBeckCount === 0) {
+      let { betType, val, pricesStore } = myBet;
+      let end = prices[prices.length - 1];
+
+      if (val === end) return;
+      let isWin;
+      if (betType === 'up') {
+        if (val < end) {
+          isWin = true;
+        } else {
+          isWin = false;
+        }
+      }
+
+      if (betType === 'down') {
+        if (val > end) {
+          isWin = true;
+        } else {
+          isWin = false;
+        }
+      }
+
+      // let unstableCoefficient = analize(pricesStore, 100, l);
+
+      if (isWin) {
+        w++;
+        tw++;
+        info[l] = info[l] ? info[l] + 1 : 1;
+        l = 0;
+        // priceStoreWin.push(unstableCoefficient);
+        // dayWin[currentDate.getHours()] = dayWin[currentDate.getHours()] ? dayWin[currentDate.getHours()] + 1 : 1;
+      } else {
+        l++;
+        tl++;
+        w = 0;
+        // priceStoreLose.push(unstableCoefficient);
+        // dayLose[currentDate.getHours()] = dayLose[currentDate.getHours()] ? dayLose[currentDate.getHours()] + 1 : 1;
+      }
+      // console.log('\033c');
+      // console.log(Object.values(dayLose).join('\n'));
+      // console.log('--');
+      // console.log(Object.values(dayWin).join('\n'));
+      // console.log(info);
+      // console.log('total win', tw);
+      // console.log('total lose', tl);
+      // console.log('total bets', tl + tw);
+      // console.log('win rate', tw / (tl+tw));
+      // console.log(unstableCoefficient);
+      // function f (res = 0, {unstableCoefficient, betType}, index, arr) {
+      //   if (unstableCoefficient < 0.6) {
+      //     res++;
+      //   }
+      //   return res;
+      // }
+
+      // priceStoreWinR = priceStoreWin.reduce(f, undefined);
+      // priceStoreLoseR = priceStoreLose.reduce(f, undefined);
+
+      // console.log('priceStoreWin', priceStoreWinR);
+      // console.log('priceStoreLose', priceStoreLoseR);
+      // console.log('priceStore total', priceStoreLoseR + priceStoreWinR);
+      // console.log('priceStoreWin rate', priceStoreWinR/(priceStoreLoseR + priceStoreWinR));
+
+    }
+
+    return;
+  }
+
+
+  let { betType } = analize(prices, 100, l);
+  if (!betType) return;
+
+  // let prevPrices = pricesStore.slice(0, pricesStore.length / 2);
+
+  betBeckCount = betCount;
+  myBet = {
+    betType,
+    val: prices[prices.length - 1],
+    // pricesStore: prevPrices,
+  };
+}
+
+
+function onEnd () {
+  console.log(info);
+  console.log(analizeCount / 60, betCount / 60);
+  console.log('total win', tw);
+  console.log('total lose', tl);
+  console.log('win rate', tw / (tl+tw));
+  console.log('-------------------------');
+  console.log();
+
+  res();
+}
+
+});
+// go();
+(async () => {
+  await go(20,20);
+  await go(30,30);
+  await go(40,40);
+  await go(50,50);
+  await go(60,60);
+})();
