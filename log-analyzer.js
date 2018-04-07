@@ -9,7 +9,7 @@ function processFile(inputFile, onLine, onClose) {
 
     rl.on('close', onClose);
 }
-processFile('log2-loose.txt', analize, printResult);
+processFile('log.txt', analize, printResult);
 
 const rate = 0.7;
 let win = 0;
