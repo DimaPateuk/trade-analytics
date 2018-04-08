@@ -87,8 +87,8 @@ function processFile(inputFile, onLine, onClose) {
 }
 
 let go = (
-  analizeCount = 20,
-  betCount = 20,
+  analizeCount = 5,
+  betCount = 5,
 ) => new Promise ((res) => {
 
 processFile('message.txt', tic, onEnd);
@@ -113,24 +113,29 @@ let l = 0;
 let tw = 0;
 let tl = 0;
 let info = {};
-let dayLose = {};
-let dayWin = {};
+let dayInfo = {};
 
+let stop = false;
 function tic(line) {
   lineCount++;
   let [val, d] = line.split(' ').map(e => parseFloat(e, 10));
-  let currentDate = new Date(d + 3*60*60*1000);
+  let currentDate = new Date(d);
+  if (!val || !d) {
+    return;
+  }
+  let currentDateStr = `${currentDate.toISOString().split('T')[0]}-${currentDate.getHours()%2 === 0 ? currentDate.getHours() : currentDate.getHours() - 1}`;
 
+  if (!dayInfo[currentDateStr])
+    dayInfo[currentDateStr] = {
+      w: 0,
+      l: 0,
+    }
 
   prices.push(val);
-  // pricesStore.push(val);
 
-  if (prices.length === analizeCount) {
-    prices = prices.slice(1);
-  }
-
-  // if (pricesStore.length !== analizeCount * 2) return;
-  // pricesStore = pricesStore.slice(1);
+  if (prices.length !== analizeCount) return;
+  
+  prices = prices.slice(1);
 
   if (betBeckCount) {
     betBeckCount--;
@@ -156,49 +161,38 @@ function tic(line) {
         }
       }
 
-      // let unstableCoefficient = analize(pricesStore, 100, l);
-
       if (isWin) {
         w++;
         tw++;
         info[l] = info[l] ? info[l] + 1 : 1;
         l = 0;
-        // priceStoreWin.push(unstableCoefficient);
-        // dayWin[currentDate.getHours()] = dayWin[currentDate.getHours()] ? dayWin[currentDate.getHours()] + 1 : 1;
+        dayInfo[currentDateStr].w++;
       } else {
         l++;
         tl++;
         w = 0;
-        // priceStoreLose.push(unstableCoefficient);
-        // dayLose[currentDate.getHours()] = dayLose[currentDate.getHours()] ? dayLose[currentDate.getHours()] + 1 : 1;
+        dayInfo[currentDateStr].l++;
       }
-      // console.log('\033c');
-      // console.log(Object.values(dayLose).join('\n'));
-      // console.log('--');
-      // console.log(Object.values(dayWin).join('\n'));
-      // console.log(info);
-      // console.log('total win', tw);
-      // console.log('total lose', tl);
-      // console.log('total bets', tl + tw);
-      // console.log('win rate', tw / (tl+tw));
-      // console.log(unstableCoefficient);
-      // function f (res = 0, {unstableCoefficient, betType}, index, arr) {
-      //   if (unstableCoefficient < 0.6) {
-      //     res++;
-      //   }
-      //   return res;
-      // }
-
-      // priceStoreWinR = priceStoreWin.reduce(f, undefined);
-      // priceStoreLoseR = priceStoreLose.reduce(f, undefined);
-
-      // console.log('priceStoreWin', priceStoreWinR);
-      // console.log('priceStoreLose', priceStoreLoseR);
-      // console.log('priceStore total', priceStoreLoseR + priceStoreWinR);
-      // console.log('priceStoreWin rate', priceStoreWinR/(priceStoreLoseR + priceStoreWinR));
-
+      console.log('\033c');
+      console.log(dayInfo);
+      console.log(info);
+      console.log('total win', tw);
+      console.log('total lose', tl);
+      console.log('total bets', tl + tw);
+      console.log('win rate', tw / (tl+tw));
     }
 
+    return;
+  }
+
+  if (currentDate.getHours() < 9 || currentDate.getHours() > 21) {
+    return;
+  }
+
+  if (
+    dayInfo[currentDateStr].w === 2 && l === 0
+    || dayInfo[currentDateStr].l === 1
+  ) {
     return;
   }
 
@@ -206,13 +200,11 @@ function tic(line) {
   let { betType } = analize(prices, 100, l);
   if (!betType) return;
 
-  // let prevPrices = pricesStore.slice(0, pricesStore.length / 2);
 
   betBeckCount = betCount;
   myBet = {
     betType,
     val: prices[prices.length - 1],
-    // pricesStore: prevPrices,
   };
 }
 
@@ -230,11 +222,11 @@ function onEnd () {
 }
 
 });
-// go();
-(async () => {
-  await go(20,20);
-  await go(30,30);
-  await go(40,40);
-  await go(50,50);
-  await go(60,60);
-})();
+go();
+// (async () => {
+//   await go(20,20);
+//   await go(30,30);
+//   await go(40,40);
+//   await go(50,50);
+//   await go(60,60);
+// })();
