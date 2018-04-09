@@ -90,7 +90,7 @@ async function printPrice () {
   let price = parseFloat(priceText.innerHTML);
   let incomeValue = parseInt(getFromFrame('.income__value').innerText);
 
-  if (myPRISEE < 4500) {
+  if (myPRISEE < 4000) {
     return;
   }
 
@@ -318,7 +318,7 @@ function analize2 (arr) {
 
 }
 
-function analize (arr) {
+function analize (arr, incomeValue = 70) {
   if (incomeValue < 70) {
     return null;
   }
