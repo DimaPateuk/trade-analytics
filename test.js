@@ -57,6 +57,7 @@ function analize (arr, incomeValue = 70, l) {
   // let isUnstable = cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
   // let isUnstable = unstableCoefficient > 0.3;//cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
   let isUnstable = cofs.every(el => el.unstableCoefficient < 0.3);
+  // let isUnstable = cofs[0] < 0.5 && cofs[1] < 0.4 && cofs[2] < 0.3;
 
   let up = cofs.every(e => e.type === 'up');
   let down = cofs.every(e => e.type === 'down');
@@ -184,9 +185,22 @@ function tic(line) {
 
     return;
   }
+  //
+  // if (currentDate.getHours() < 9 || currentDate.getHours() > 21) {
+  //   return;
+  // }
+  if (l === 0) {
+    if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+      return;
+    }
 
-  if (currentDate.getHours() < 9 || currentDate.getHours() > 21) {
-    return;
+    if (currentDate.getDay() === 5 && currentDate.getHours() > 18) {
+      return;
+    }
+
+    if (currentDate.getHours() < 9 || currentDate.getHours() > 21) {
+      return;
+    }
   }
 
   if (

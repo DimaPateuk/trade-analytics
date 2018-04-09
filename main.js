@@ -26,15 +26,27 @@ let betLoseMap = {
   18: 54,
   54: 'limit',
   'limit': 'limit',
-}
+};
+
+let dayInfo = null;
 
 let intervalIndeficator;
 
+ipcRenderer.once('sendDayInfo', (event, info) => {
+  dayInfo = info;
+});
+ipcRenderer.send('ready');
 iframe.addEventListener('load', () => {
   let idInterval = setInterval(async () => {
+    if (!dayInfo) {
+      return;
+    }
     let input = getFromFrame('.input-currency input');
     let tab = getFromFrame('#pm-v1-EURUSD');
-    if (!input || !tab) return;
+    let priceText = getFromFrame('.pin_text');
+    if (!input || !tab || !priceText) {
+      return;
+    }
     clearInterval(idInterval);
     await setBet(bet);
     if (!tab.classList.contains('pair-tab_selected')) {
@@ -46,31 +58,23 @@ iframe.addEventListener('load', () => {
   }, 50);
 });
 
-let w = 0;
-let l = 0;
-
 async function printPrice () {
   if (forceRelod && (bet === 1 || bet === 'limit')) {
     clearInterval(intervalIndeficator);
+    ipcRenderer.send('saveDayInfo', dayInfo);
     window.location.reload();
     return;
   }
   let currentDate = new Date();
-  let day = currentDate.getDay();
-  let hours = currentDate.getHours();
-
-  if (bet === 1 || bet === 'limit') {
-    if ((day === 1 && hours <= 3) ||
-       (day === 5 && hours >= 22) ||
-       (day === 6 || day === 0)) {
-      prices = [];
-      return;
-    }
-  }
-
+  let currentDateStr = `${currentDate.toISOString().split('T')[0]}-${currentDate.getHours()%2 === 0 ? currentDate.getHours() : currentDate.getHours() - 1}`;
   let priceText = getFromFrame('.pin_text');
   let curTime = getFromFrame('.timeinput__input.timeinput__input_minutes');
 
+  if (!dayInfo[currentDateStr])
+    dayInfo[currentDateStr] = {
+      w: 0,
+      l: 0,
+    }
   if (!priceText && !curTime) {
     prices = [];
     return;
@@ -89,10 +93,32 @@ async function printPrice () {
   if (myPRISEE < 4500) {
     return;
   }
-  let betType = analize(prices, incomeValue);
+
   prices.push(createTrainValue(price));
   if (prices.length > ticInOneMin * countMinutesAnalize) {
     prices = prices.slice(1);
+
+    if (bet === 1 || bet === 'limit') {
+      if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+        return;
+      }
+
+      if (currentDate.getDay() === 5 && currentDate.getHours() > 18) {
+        return;
+      }
+
+      if (currentDate.getHours() < 9 || currentDate.getHours() > 21) {
+        return;
+      }
+    }
+    if (
+      dayInfo[currentDateStr].w === 1 && dayInfo.l === 0
+      || dayInfo[currentDateStr].l === 1
+    ) {
+      return;
+    }
+
+    let { betType } = analize(prices, incomeValue);
 
     if (inProgress) {
       return;
@@ -127,17 +153,19 @@ async function printPrice () {
 
         if (result.indexOf('Прогноз не оправдался') !== -1) {
           bet = betLoseMap[bet];
-          l++;
-          w = 0;
+          dayInfo.l++;
+          dayInfo.w = 0;
+          dayInfo[currentDateStr].l++;
         }
 
         if (result.indexOf('Прогноз оправдался') !== -1) {
           bet = 1;
-          w++;
-          l = 0;
+          dayInfo.w++;
+          dayInfo.l = 0;
+          dayInfo[currentDateStr].w++;
 
         }
-
+        ipcRenderer.send('saveDayInfo', dayInfo);
         await setBet(bet);
         inProgress = false;
 
@@ -152,7 +180,7 @@ function relodAfter(time) {
 }
 
 async function setBet (bet = 1) {
-  // return;
+
   let current = parseInt(getFromFrame('.input-currency input').value.replace(' ', ''));
   let myBet = bet * MIN_BET || MIN_BET;
 
@@ -257,6 +285,10 @@ function analize2 (arr) {
   let countMore = 0;
   let countLess = 0;
 
+  arr = reject(arr, function (v, i) {
+      return i > 0 && arr[i - 1] === v;
+  });
+
   for (var i = 0; i < arr.length; i++) {
   	for (var j = i; j < arr.length; j++) {
   		if (arr[i] < arr[j]) countMore++;
@@ -286,15 +318,12 @@ function analize2 (arr) {
 
 }
 
-function analize (arr, incomeValue = 70) {
+function analize (arr) {
   if (incomeValue < 70) {
     return null;
   }
-  let length = arr.length;
-  arr = reject(arr, function (v, i) {
-      return i > 0 && arr[i - 1] === v;
-  });
-  let count = 3;
+
+  let count = 3
   let part = Math.floor(arr.length / count);
   let cofs = [];
   var i = 0;
@@ -303,19 +332,21 @@ function analize (arr, incomeValue = 70) {
   }
   cofs.push(analize2(arr.slice(i*part, arr.length)));
 
-  let averageCof = cofs.reduce((res,el) => res + el.unstableCoefficient, 0) / count;
-  // let isUnstable = cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
-  let isUnstable = averageCof > 0.3;//cofs.filter(el => el.unstableCoefficient < 0.3).length === cofs.length;
+  let unstableCoefficient = cofs.reduce((res,el) => res + el.unstableCoefficient, 0) / count;
+  let isUnstable = cofs.every(el => el.unstableCoefficient < 0.3);
 
-  let up = cofs.filter(e => e.type === 'up').length === cofs.length;
-  let down = cofs.filter(e => e.type === 'down').length === cofs.length;
+  let up = cofs.every(e => e.type === 'up');
+  let down = cofs.every(e => e.type === 'down');
 
-  // console.log(averageCof, length, arr.length, up && 'up', down && 'down');
+  if (isUnstable) return {unstableCoefficient};
+  if (!up && !down) return {unstableCoefficient};
 
-  if (isUnstable) return null;
-  if (!up && !down) return null;
-
-  return up
+  let betType = up
     ? 'up'
     : 'down';
+
+  return {
+    unstableCoefficient,
+    betType,
+  }
 }

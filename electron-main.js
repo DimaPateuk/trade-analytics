@@ -1,10 +1,12 @@
-const { scrollLeft } = require('./robotControllet');
+// const { scrollLeft } = require('./robotControllet');
 const { app, BrowserWindow, ipcMain } = require('electron')
 const path = require('path')
 const url = require('url')
 
 var fs = require('fs');
 var priceLogName = `price-log-${(new Date()).toString().split(':').join('-')}`;
+
+var dayInfo = null;
 function createWindow () {
 
   win = new BrowserWindow({width: 800, height: 600})
@@ -27,53 +29,62 @@ function createWindow () {
     ipcMain.on('fillPriceDone');
   });
 
-  ipcMain.on('startScroll', (event, arg) => {
-    setInterval(scrollLeft, 10000);
-  });
+  // ipcMain.on('startScroll', (event, arg) => {
+  //   setInterval(scrollLeft, 10000);
+  // });
 
   var prependFile = require('prepend-file');
-   
+
   prependFile('message.txt', 'data to prepend', function (err) {
       if (err) {
-          // Error 
+          // Error
       }
-   
-      // Success 
+
+      // Success
       console.log('The "data to prepend" was prepended to file!');
   });
   var last;
-  ipcMain.on('scrollLeft', (event, arg) => {
-    scrollLeft();
-    var result;
-    if (!last) {
-      result = arg
-        .data
-        .map(e => `${e.v} ${e.d}`)
-        .join('\r\n');
+  // ipcMain.on('scrollLeft', (event, arg) => {
+  //   scrollLeft();
+  //   var result;
+  //   if (!last) {
+  //     result = arg
+  //       .data
+  //       .map(e => `${e.v} ${e.d}`)
+  //       .join('\r\n');
+  //
+  //   } else {
+  //     result = arg
+  //       .data
+  //       .slice(0, arg.data.findIndex((e) => e.d === last.d))
+  //       .map(e => `${e.v} ${e.d}`)
+  //       .join('\r\n');
+  //   }
+  //
+  //   last = arg.data[0];
+  //   prependFile('message.txt', result + '\r\n', function (err) {
+  //         if (err) {
+  //             console.log(err);
+  //             return;
+  //         }
+  //
+  //         setTimeout(() => {
+  //           win.webContents.send('scrollLeftDone');
+  //         }, 3000);
+  //     });
+  // });
 
-    } else {
-      result = arg
-        .data
-        .slice(0, arg.data.findIndex((e) => e.d === last.d))
-        .map(e => `${e.v} ${e.d}`)
-        .join('\r\n');
-    }
 
-    last = arg.data[0];
-    prependFile('message.txt', result + '\r\n', function (err) {
-          if (err) {
-              console.log(err);
-              return;
-          }
+  ipcMain.on('ready', (event, arg) => {
+    win.webContents.send('sendDayInfo', dayInfo || { l:0, w:0 });
+  });
 
-          setTimeout(() => {
-            win.webContents.send('scrollLeftDone');
-          }, 3000);
-      });
+  ipcMain.on('saveDayInfo', (event, arg) => {
+
+    dayInfo = Object.assign({}, dayInfo, arg);
+    fs.appendFile('dayInfo.txt',JSON.stringify(dayInfo) + '\r\n');
+
   });
 }
 
 app.on('ready', createWindow)
-
-
-
