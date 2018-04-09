@@ -17,10 +17,15 @@
   },
   "homepage": "https://github.com/DimaPateuk/trade-analytics#readme",
   "devDependencies": {
-    "electron": "^1.8.4"
+    "electron": "^1.8.4",
+    "electron-rebuild": "^1.7.3"
   },
   "dependencies": {
     "lodash.reject": "^4.6.0",
-    "lodash.uniq": "^4.5.0"
+    "lodash.uniq": "^4.5.0",
+    "prepend-file": "^1.3.1",
+    "robotjs": "^0.5.1",
+    "set-tz": "^0.1.0",
+    "time": "^0.12.0"
   }
 }
