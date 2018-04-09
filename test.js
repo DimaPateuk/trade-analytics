@@ -134,7 +134,7 @@ function tic(line) {
   prices.push(val);
 
   if (prices.length !== analizeCount) return;
-  
+
   prices = prices.slice(1);
 
   if (betBeckCount) {
@@ -190,7 +190,7 @@ function tic(line) {
   }
 
   if (
-    dayInfo[currentDateStr].w === 2 && l === 0
+    dayInfo[currentDateStr].w === 1 && l === 0
     || dayInfo[currentDateStr].l === 1
   ) {
     return;
