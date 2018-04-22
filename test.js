@@ -94,6 +94,13 @@ let go = (
 
 processFile('message.txt', tic, onEnd);
 
+
+var minBet = 1;
+var currentBet = minBet;
+var result = 0;
+var rate = 0.7;
+var lost = 0;
+
 let lineCount = 0;
 let prevTime
 let prices = [];
@@ -168,14 +175,26 @@ function tic(line) {
         info[l] = info[l] ? info[l] + 1 : 1;
         l = 0;
         dayInfo[currentDateStr].w++;
+        result += currentBet * rate;
+        lost -= currentBet * rate;
+        if (lost < minBet) {
+          lost = 0;
+          currentBet = minBet;
+        }
       } else {
+        result -= currentBet;
+        lost += currentBet;
+        currentBet += lost;
         l++;
         tl++;
         w = 0;
         dayInfo[currentDateStr].l++;
       }
       console.log('\033c');
-      console.log(dayInfo);
+      // console.log(dayInfo);
+      console.log(result);
+      console.log(lost);
+      console.log(currentBet);
       console.log(info);
       console.log('total win', tw);
       console.log('total lose', tl);
@@ -189,26 +208,26 @@ function tic(line) {
   // if (currentDate.getHours() < 9 || currentDate.getHours() > 21) {
   //   return;
   // }
-  if (l === 0) {
-    if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
-      return;
-    }
+  // if (l === 0) {
+  //   if (currentDate.getDay() === 0 || currentDate.getDay() === 6) {
+  //     return;
+  //   }
 
-    if (currentDate.getDay() === 5 && currentDate.getHours() > 18) {
-      return;
-    }
+  //   if (currentDate.getDay() === 5 && currentDate.getHours() > 18) {
+  //     return;
+  //   }
 
-    if (currentDate.getHours() < 9 || currentDate.getHours() > 21) {
-      return;
-    }
-  }
+  //   if (currentDate.getHours() < 9 || currentDate.getHours() > 21) {
+  //     return;
+  //   }
+  // }
 
-  if (
-    dayInfo[currentDateStr].w === 1 && l === 0
-    || dayInfo[currentDateStr].l === 1
-  ) {
-    return;
-  }
+  // if (
+  //   dayInfo[currentDateStr].w === 5 && l === 0
+  //   || dayInfo[currentDateStr].l === 1
+  // ) {
+  //   return;
+  // }
 
 
   let { betType } = analize(prices, 100, l);
@@ -236,7 +255,7 @@ function onEnd () {
 }
 
 });
-go();
+go(1, 1);
 // (async () => {
 //   await go(20,20);
 //   await go(30,30);
